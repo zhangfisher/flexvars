@@ -68,4 +68,16 @@ describe("基本的变量插值功能", () => {
         expect(flexvars.replace("{x}{y}{z}",{x:"a"})).toBe("a**")
         expect(flexvars.replace("{x}{y}{z}")).toBe("***")
     })
+
+    test("过滤器",()=>{
+        // flexvars.addFilter({
+        //     name:"upper",
+        //     args:["onlyFirst"],
+        //     handler(value,args,context){
+
+        //     }
+        // })
+        flexvars.replace("I am { value | upper | upper(1,2,'a') | upper({a:1,b:2},{a:1,b:2})  | upper({a:1,b:2}) }")
+
+    })
 })

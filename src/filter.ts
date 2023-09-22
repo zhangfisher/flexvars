@@ -15,9 +15,9 @@ import { isNumber } from "flex-tools/typecheck/isNumber"
 import { isFunction } from "flex-tools/typecheck/isFunction"
 import { isPlainObject } from "flex-tools/typecheck/isPlainObject"
 import { safeParseJson } from "flex-tools/object/safeParseJson"
-import { assignObject } from "flex-tools/object/assignObject"
 import { addTagHelperFlags, removeTagHelperFlags } from "./tagHelper"
 import type { FlexVars } from "./flexvars"
+import { FlexFilterContext } from './parser';
 
 export type FilexFilterErrorBehavior = 'throw' | 'ignore' | 'break' 
  
@@ -32,18 +32,18 @@ export type FilexFilterErrorBehavior = 'throw' | 'ignore' | 'break'
  * @param args      当前过滤器的参数
  * @param context   上下文字典，用于存储一些共享数据
  * 
- */
-export interface FlexFilter{
-    (this:FlexVars,value:any,args:any[],context:Record<string,any>):any
-    name?:string    
-}
+//  */
+// export interface FlexFilter{
+//     (this:FlexVars,value:any,args:any[],context:Record<string,any>):any
+//     name?:string    
+// }
 
-export interface FilterDefine {
-	// 是否默认启用该过滤器的,none代表不启动
-	// before代表每一个插值变量均前置安装面，after代表安装在后面
-	use?: "none" | "before" | "after";
-	filter: FlexFilter;
-}
+// export interface FilterDefine {
+// 	// 是否默认启用该过滤器的,none代表不启动
+// 	// before代表每一个插值变量均前置安装面，after代表安装在后面
+// 	use?: "none" | "before" | "after";
+// 	filter: FlexFilter;
+// }
 
 /**
  * 
@@ -226,10 +226,23 @@ function parseFilterParams(strParams: string): any[] {
  */
 
 
-export interface CreateFilterOptions {
-    normalize?: (value: string) => any          // 对输入值进行规范化处理，如进行时间过滤器时，为了提高更好的兼容性，支持数字时间戳/字符串/Date等，需要对输入值进行处理，如强制类型转换等
-    params?: Record<string, any> | null,        // 可选的，声明参数顺序，如果是变参的，则需要传入null
-    contextKey?: string                          // 声明该过滤器的参数在context中的路径，支持简单的使用.的路径语法
+export interface FlexFilter<T extends Record<string,any> = Record<string,any>>{
+    name?:string
+    // 过滤器类型
+    // default=普通过滤器
+    // before=前置过滤器，after=后置过滤器，自动追加到过滤器列表中前面或后面
+    // beforeEach=前置过滤器，afterEach=后置过滤器,  会在每个过滤器前面或后面追加
+    // error=出错时的过滤器，会在出错时执行
+    type?: 'default' | 'before' | 'after' | 'error'      
+    // 默认参数值
+    default?:T        
+    // 可选的，声明参数顺序，如果是变参的，则需要传入null
+    args?: (keyof T)[] | null
+    // 声明该过滤器的参数在context中的路径，支持简单的使用.的路径语法
+    // 如果指定时则会从context中读取参数传入过滤器（最后一个参数）
+    configKey?: string    
+    // 过滤处理函数，用来实现过滤器的具体逻辑
+    handle:(value:any,args:T,context:FlexFilterContext)=>string                      
 }
 
 // export function createFilter<Value=any,Args extends any[] = any[]>(fn: FlexFilter, options?: CreateFilterOptions, defaultParams?: Record<string, any>) {
