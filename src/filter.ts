@@ -16,8 +16,8 @@ import { isFunction } from "flex-tools/typecheck/isFunction"
 import { isPlainObject } from "flex-tools/typecheck/isPlainObject"
 import { safeParseJson } from "flex-tools/object/safeParseJson"
 import { addTagHelperFlags, removeTagHelperFlags } from "./tagHelper"
-import type { FlexVars } from "./flexvars"
-import { FlexFilterContext } from './parser';
+import type { FilterEmptyBehavior, FilterErrorBehavior, FlexVars } from "./flexvars"
+import { FlexFilterContext, FlexVariableContext } from './parser';
 
 export type FilexFilterErrorBehavior = 'throw' | 'ignore' | 'break' 
  
@@ -153,7 +153,7 @@ function parseFilterParams(strParams: string): any[] {
             }
             let value: any = matched[0]
             if (value.trim() == '') {
-                value = null
+                value = undefined
             } else if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
                 value = value.substring(1, value.length - 1)
                 value = removeTagHelperFlags(value)
@@ -232,8 +232,7 @@ export interface FlexFilter<T extends Record<string,any> = Record<string,any>>{
     // default=普通过滤器
     // before=前置过滤器，after=后置过滤器，自动追加到过滤器列表中前面或后面
     // beforeEach=前置过滤器，afterEach=后置过滤器,  会在每个过滤器前面或后面追加
-    // error=出错时的过滤器，会在出错时执行
-    type?: 'default' | 'before' | 'after' | 'error'      
+    type?: 'default' | 'before' | 'after'  
     // 默认参数值
     default?:T        
     // 可选的，声明参数顺序，如果是变参的，则需要传入null
@@ -243,6 +242,10 @@ export interface FlexFilter<T extends Record<string,any> = Record<string,any>>{
     configKey?: string    
     // 过滤处理函数，用来实现过滤器的具体逻辑
     handle:(value:any,args:T,context:FlexFilterContext)=>string                      
+    // 当执行过滤器时出错时的处理函数, BREAK:中止后续过滤器执行, THROW:抛出异常, IGNORE:忽略继续执行后续过滤器
+    onError?:(this:FlexVars,error:Error,value:any,args:any[],context:FlexFilterContext)=>FilterErrorBehavior | string;     
+    // 当过滤器执行返回空值时的处理函数,空值是指null,undefined 
+    onEmpty?:(this:FlexVars,value:any,args:any[],context:FlexFilterContext)=>FilterEmptyBehavior | string        
 }
 
 // export function createFilter<Value=any,Args extends any[] = any[]>(fn: FlexFilter, options?: CreateFilterOptions, defaultParams?: Record<string, any>) {

@@ -2,7 +2,7 @@ import { getByPath } from "flex-tools";
 import { assignObject } from "flex-tools/object/assignObject";
 import { isPlainObject } from "flex-tools/typecheck/isPlainObject";
 import {  FlexFilter } from "./filter";
-import { executeFilter, forEachInterpolatedVars, FlexFilterContext } from './parser'; 
+import { executeFilters, forEachInterpolatedVars, FlexVariableContext } from './parser'; 
 
 
 
@@ -14,6 +14,7 @@ export enum FilterErrorBehavior {
 export enum FilterEmptyBehavior {
     Empty,              // 返回空字符串
     Ignore,             // 忽略，保持原始值
+    Throw,              // 触发异常
 }
 
 export interface FlexVarsOptions {
@@ -21,7 +22,7 @@ export interface FlexVarsOptions {
 	// 预定义的过滤器列表
     filters?: Record<string, FlexFilter | FlexFilter['handle'] >;                
     // 动态过滤器，当预定义的过滤器列表中没有找到对应的过滤器时，会调用此函数来获取过滤器
-	getFilter?(name: string,context:FlexFilterContext): FlexFilter['handle'] | undefined;                   
+	getFilter?(name: string,context:FlexVariableContext): FlexFilter | FlexFilter['handle'] | undefined;                   
 	log?(message, ...args: any[]): void;                                // 日志输出函数
     // 当没有对应的插值变量为空时，如何处理?
     // default: 使用空字符代表
@@ -31,12 +32,12 @@ export interface FlexVarsOptions {
     // 用来保存配置数据,主要用于供过滤器使用，每一个过滤器均可以在配置中读取到
 	config?: Record<string, any>; 
     // 当执行过滤器时出错时的处理函数, BREAK:中止后续过滤器执行, THROW:抛出异常, IGNORE:忽略继续执行后续过滤器
-    onError:(this:FlexVars,error:Error,value:any,args:any[],context:FlexFilterContext)=>FilterErrorBehavior | string;     
+    onError?:(this:FlexVars,error:Error,value:any,args:any[],context:FlexVariableContext)=>FilterErrorBehavior | string;     
     // 当过滤器执行返回空值时的处理函数,空值是指null,undefined
     // 可以返回一个字符串用于替换空值，或者返回一个''表示空值
-    onEmpty:(this:FlexVars,value:any,args:any[],context:FlexFilterContext)=>FilterEmptyBehavior | string               
+    onEmpty?:(this:FlexVars,value:any,args:any[],context:FlexVariableContext)=>FilterEmptyBehavior | string               
     // 判断一个值是否为空值的函数
-    isEmpty:(value:any)=>boolean;                                      
+    isEmpty?:(value:any)=>boolean;                                      
 }
 
 export type RequiredFlexVarsOptions = Omit<Required<FlexVarsOptions>,"filters"> & { filters: Record<string, FlexFilter> };
@@ -44,7 +45,7 @@ export type RequiredFlexVarsOptions = Omit<Required<FlexVarsOptions>,"filters"> 
 
 export class FlexVars {
 	options: RequiredFlexVarsOptions;
-    private _commonFilters:{before:string[],after:string[],error:[],empty:[]} = {before:[],after:[],error:[],empty:[]}         // 特定用途的过滤器列表
+    private _commonFilters:{before:string[],after:string[]} = {before:[],after:[]}         // 特定用途的过滤器列表
 	constructor(options?: FlexVarsOptions) {
 		this.options = assignObject(
 			{
@@ -81,37 +82,37 @@ export class FlexVars {
      * @param define 
      */
     addFilter(filter:FlexFilter){
-        if(!filter.name) throw new Error("")
-        if(typeof(filter.handle)!=="function")  throw new Error()
-        this.filters[filter.name]= filter
+        if(!filter.name) throw new Error("Filter name cannot be empty")
+        if(typeof(filter.handle)!=="function")  throw new Error("The filter must provide a handle function")
+        return this.filters[filter.name]= filter
     }
-
-    removeFilter(){    
-
+    /**
+     * 移除过滤器
+     * @param name 
+     */
+    removeFilter(name:string){    
+        delete this.filters[name]
+        this._commonFilters.before = this._commonFilters.before.filter(n=>n!=name)
+        this._commonFilters.after = this._commonFilters.after.filter(n=>n!=name)        
     }
-    getFilter(name: string,context:FlexFilterContext): FlexFilter['handle'] | undefined {
+    getFilter(name: string,context:FlexVariableContext): FlexFilter | undefined {
         if(name in this.options.filters){
-            return this.options.filters[name].handle
+            return this.options.filters[name]
         }else{
-            return this.options.getFilter(name,context)
+            let r =  this.options.getFilter(name,context)
+            if(typeof(r)=='function'){
+                return {name,handle:r}
+            }else{
+                return r
+            }
         }
     }
 
 	private addBuildinFilters() {
+        // 默认错误处理器 , error("throw" | "abort" | "ignore" | 'ffffff',message)
+        this.addFilter()
         
-    }
-
-    private buildFilterContext({name,value,template,match}):FlexFilterContext{
-        if(name in this.filters){
-            const filter = this.filters[name]
-            return {
-                name,value,template,match,
-                config: filter.configKey ?  getByPath(this.options.config,filter.configKey) : this.options.config
-            }
-        }else{
-            return undefined
-        }
-    }
+    } 
 	/**
 	 * 对传入过滤器进行规范化处理
 	 *
@@ -172,8 +173,7 @@ export class FlexVars {
 					let value = name in varValues ? varValues[name] : this.getMissingValue(name,match);
                     if(typeof(value)=='function') value = value.call(this)
                     if(filters.length==0) return value               
-                    const filterContext =this.buildFilterContext({name,value,template,match})
-					return executeFilter.call(this, filters,filterContext);
+					return String(executeFilters.call(this, filters,{name,value,template,match}));
 				}
 			);
 		} else {
@@ -187,8 +187,7 @@ export class FlexVars {
                     let value = params.length > i ? (params[i++]) : this.getMissingValue(i,match)
                     if(typeof(value)=='function') value = value.call(this)     
                     if(filters.length==0) return value               
-                    const filterContext =this.buildFilterContext({name,value,template,match})
-					return executeFilter.call(this,filters,filterContext);
+					return String(executeFilters.call(this,filters,{name,value,template,match}));
 				},{ replaceAll: false }
 			);
 		}
