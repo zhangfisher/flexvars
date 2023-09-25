@@ -36,7 +36,7 @@
 
  import { isPlainObject } from "flex-tools/typecheck/isPlainObject"
  import { isFunction } from "flex-tools/typecheck/isFunction"
- import { FilterDefineChain, parseFilters, FlexFilter, FilexFilterErrorBehavior } from './filter';
+ import { FilterInputChain, parseFilters, FlexFilter, FilexFilterErrorBehavior } from './filter';
 import { assignObject } from 'flex-tools/object/assignObject';
 import { FilterEmptyBehavior, FilterErrorBehavior, FlexVars } from "./flexvars";
 import { replaceAll } from "flex-tools/string/replaceAll";
@@ -80,7 +80,7 @@ export function hasInterpolation(str:string):boolean {
  
  
 
- export type InterpolatedVarReplacer = (name:string,filters:FilterDefineChain,matched:string)=>string;
+ export type InterpolatedVarReplacer = (name:string,filters:FilterInputChain,matched:string)=>string;
  
  
 
@@ -139,8 +139,7 @@ export interface FlexVariableContext {
     value:any                           // 当前变量的输入值
     template:string,                    // 当前模板字符串，即整个字符串
     match:string,                       // 当前匹配到的变量原始字符串      
-    onError?:(this:FlexVars,error:Error,value:any,args:any[],context:FlexFilterContext)=>FilterErrorBehavior | string;     
-    onEmpty?:(this:FlexVars,value:any,args:any[],context:FlexFilterContext)=>FilterEmptyBehavior | string    
+    onError?:(this:FlexVars,error:Error,value:any,args:Record<string,any>,context:FlexFilterContext)=>FilterErrorBehavior | string;     
 }
 
 export interface FlexFilterContext extends FlexVariableContext{
@@ -149,6 +148,14 @@ export interface FlexFilterContext extends FlexVariableContext{
 
 export class AbortFilterError extends Error{ } 
 export class ThrowFilterError extends Error{ } 
+// 用来传递给过滤器函数的参数
+export class ReturnValueFilterError extends Error{     
+    constructor(public value:any) {
+        super()
+    }
+} 
+
+ 
 
  /**
   * 执行过滤器器并返回结果
@@ -158,15 +165,15 @@ export class ThrowFilterError extends Error{ }
   * 这样过滤器器可以读取$config
   *
   * @param {*} value
-  * @param {FilterDefineChain} filters  经过解析过的过滤器器参数链 ，多个过滤器器函数(经过包装过的)顺序执行，前一个输出作为下一个过滤器器的输入
+  * @param {FilterInputChain} filters  经过解析过的过滤器器参数链 ，多个过滤器器函数(经过包装过的)顺序执行，前一个输出作为下一个过滤器器的输入
   *  formatters [ [<过滤器器名称>,[<参数>,<参数>,...],[<过滤器器名称>,[<参数>,<参数>,...]],...]\
   * @param {{value,name,template,match}}   
   * 
   */ 
-export function executeFilters(this:FlexVars, filterDefines:FilterDefineChain[], context:FlexVariableContext) {
+export function executeFilters(this:FlexVars, filterDefines:FilterInputChain[], context:FlexVariableContext) {
      if (filterDefines.length === 0) return context.value;
      // 1. 返回过滤器函数数组处理器
-     const filterHandlers = getFilterHandlers.call(this,filterDefines,context)
+     const filterHandlers = getFilterHandlers.call(this,filterDefines,context)          
      let value = context.value
      // 2. 分别执行过滤器器函数
      for (let filter of filterHandlers) {
@@ -175,11 +182,13 @@ export function executeFilters(this:FlexVars, filterDefines:FilterDefineChain[],
         }catch(e:any){
             if(e instanceof AbortFilterError){
                 break
+            }else if(e instanceof ReturnValueFilterError){
+                value = e.value
+                break
             }else{
                 throw e
             }
-        }
-        
+        }        
      }
      return value;
  }
@@ -198,18 +207,20 @@ export function executeFilters(this:FlexVars, filterDefines:FilterDefineChain[],
   * @param context 
   */
 function executeErrorHandler(this:FlexVars,error:Error,value:any,args:any[],filter:FlexFilter,context:FlexFilterContext){
-    const errorHandler =filter.onError || this.options.onError
+    const errorHandler =context.onError || filter.onError || this.options.onError
     if(typeof(errorHandler)!="function") return value
     try{
-        let r =  errorHandler.call(this,value,args,context)             
+        let r =  errorHandler.call(this,error,value,args,context)             
         if(r==FilterErrorBehavior.Ignore){
             return value        // 返回上一次的结果，相当于本次过滤器没有执行
         }else if(r==FilterErrorBehavior.Throw){
             throw new ThrowFilterError()      
         }else if(r==FilterErrorBehavior.Abort){ // 中断后续所有过滤器的执行
             throw new AbortFilterError()
-        }else{
-            return String(r)
+        }else if(r instanceof Error){ // 返回空字符串
+            throw r
+        }else{ // 返回值时
+            throw new ReturnValueFilterError(r)
         }
     }catch(e:any){
         if(e instanceof ThrowFilterError){
@@ -224,9 +235,7 @@ function executeErrorHandler(this:FlexVars,error:Error,value:any,args:any[],filt
 /**
  * 
  * 当过滤器返回空值时的处理行为
- * 
- * 
- * 
+ *  
  * 
  */
 function executeEmptyHandler(this:FlexVars,value:any,args:any[],filter:FlexFilter,context:FlexFilterContext){
@@ -252,10 +261,9 @@ function executeEmptyHandler(this:FlexVars,value:any,args:any[],filter:FlexFilte
  * 
  * @param name      过滤器名称 
  * @param args      传入的参数
- * @param handle    过滤器处理函数
+ * @param nex    过滤器处理函数
  */
 function wrapperFilter(this:FlexVars,filter:FlexFilter,args:any[], context:FlexVariableContext){
-
     
     // 1. 处理参数
     let finalArgs:Record<string,any> =Object.assign({},filter.default)    
@@ -277,7 +285,7 @@ function wrapperFilter(this:FlexVars,filter:FlexFilter,args:any[], context:FlexV
             getConfig:()=>filter.configKey ? getByPath(this.options.config,filter.configKey) : this.options.config
         }) as FlexFilterContext
         try{
-            result = filter.handle.call(this,value,finalArgs,filterContext)
+            result = filter.next.call(this,value,finalArgs,filterContext)
             if(this.options.isEmpty(result)){
                 result = executeEmptyHandler.call(this,value,finalArgs,filter,filterContext)
             }
@@ -290,24 +298,38 @@ function wrapperFilter(this:FlexVars,filter:FlexFilter,args:any[], context:FlexV
     }
 }
 
-
 /**
+ * 对过滤器进行排序
  * 
- * 某些过滤器指定被注入到过滤执行链中的位置
+ * @remarks
  * 
+ *   1. 优先级为before的过滤器排在前面
+ *   2. 优先级为after的过滤器排在后面
+ *   3. 优先级为normal的过滤器排在中间
  * 
  * @param this 
- * @param at 
- * @param context 
+ * @param filterDefines 
  * @returns 
  */
-function getInjectFilters(this:FlexVars,filterType:FlexFilter['type'],context:FlexVariableContext){
-    try{
-        return this.commonFilters[filterType!].filter(name=>name in this.filters).map((name:string)=>{
-            return wrapperFilter.call(this,this.filters[filterType!],[],context)
-        })
-    }catch{}
-    return []
+function getSortedFilters(this:FlexVars,filterDefines:FilterInputChain) : ([FlexFilter,any[]])[]  {
+    type FilterInfos = ([FlexFilter,string[]])[] 
+    const afterFilters:FilterInfos = []
+    let filters =filterDefines.map(([name,args])=>[this.getFilter(name),args])// 找出有效的过滤器
+    .filter(([filter])=>filter!= null) as FilterInfos    
+    // 过滤无效的过滤器
+    filters.reduce<FilterInfos>((prev:FilterInfos,[filter,args])=>{            // 处理优先级排序
+        if(filter){
+            if(filter.priority=='before'){
+                prev.unshift([filter,args])
+            }else if(filter.priority=='after'){
+                afterFilters.push([filter,args])
+            }else{
+                prev.push([filter,args])
+            }
+        }
+        return prev
+    },[])  
+    return filters.concat(afterFilters)  
 }
  
  /**
@@ -330,19 +352,15 @@ function getInjectFilters(this:FlexVars,filterType:FlexFilter['type'],context:Fl
   * @returns {Array}   [(v)=>{...},(v)=>{...},(v)=>{...}]
   *
   */
- function getFilterHandlers(this:FlexVars,filterDefines:FilterDefineChain,context:FlexVariableContext) {
-     let filters:(FlexFilter['handle'])[] = [];
-    filters.push(...getInjectFilters.call(this,'before',context))
-    for (let [name, args] of filterDefines){
-        let filter = this.getFilter(name,context)
-        if(filter){
-            filters.push(wrapperFilter.call(this,filter,args,context))
-        }else{
-            this.log(`过滤器<${name}>不存在`)
-        }        
-    }    
-    filters.push(...getInjectFilters.call(this,'after',context)) 
-    return filters;
+ function getFilterHandlers(this:FlexVars,filterDefines:FilterInputChain,context:FlexVariableContext) {
+    
+    const filters:([FlexFilter,any[]])[] = getSortedFilters.call(this,filterDefines)
+    const filderHandlers:any[]=[]  
+    for (let [filter,args] of filters){
+        filderHandlers.push(wrapperFilter.call(this,filter,args,context))    
+    }
+
+    return filderHandlers;
  }
   
  

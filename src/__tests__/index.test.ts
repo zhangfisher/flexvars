@@ -1,4 +1,4 @@
-import { describe,beforeAll,test,beforeEach,expect} from "vitest"
+import { describe,beforeAll,test,beforeEach,expect,vi} from "vitest"
 import { FilterErrorBehavior, FlexVars } from '../flexvars';
 
 
@@ -91,7 +91,7 @@ describe("过滤器", () => {
             name:"unit",
             args:["prefix","suffix","upper"],
             default:{prefix:"",suffix:"",upper:false},
-            handle(value,args,context){
+            next(value,args,context){
                 if(args.upper) value = value.toUpperCase()
                 return `${args.prefix}${value}${args.suffix}`
             }
@@ -129,7 +129,7 @@ describe("过滤器", () => {
             name:"add",
             args:["step"],
             default:{step:1},
-            handle(value,args,context){
+            next(value,args,context){
                 return parseInt(value)+args.step
             }
         })
@@ -140,19 +140,19 @@ describe("过滤器", () => {
     })
 
 
-    test("过滤器出错处理",()=>{
+    test("过滤器默认出错处理",()=>{
         class MyError extends Error{}
         const filter =flexvars.addFilter({
             name:"add",
             args:["step"],
             default:{step:1},
-            handle(value,args,context){
+            next(value,args,context){
                 return parseInt(value)+args.step
             }
         })
         flexvars.addFilter({
             name:"throw",
-            handle(value,args,context){
+            next(value,args,context){
                 throw new MyError("出错了")
             }
         })
@@ -171,7 +171,98 @@ describe("过滤器", () => {
 
 
     })
+    test("出错处理逻辑指定在过滤器上",()=>{
+        class MyError extends Error{}
+        let fn = vi.fn()
+        flexvars.options.onError = ()=>{
+            fn()
+            return FilterErrorBehavior.Ignore
+        }
+        const addFilter = flexvars.addFilter({
+            name:"add",
+            args:["step"],
+            default:{step:1},
+            next(value,args,context){
+                return parseInt(value)+args.step
+            }
+        })      
+        const throwFilter = flexvars.addFilter({
+            name:"throw",
+            next(value,args,context){
+                throw new MyError("出错了")
+            }
+        })
+        throwFilter.onError = ()=>FilterErrorBehavior.Ignore
+        expect(flexvars.replace("{|throw}",0)).toBe("0")        
+        throwFilter.onError = ()=>FilterErrorBehavior.Abort
+        expect(flexvars.replace("{|add|add|throw|add|add}",0)).toBe("2")        
+        throwFilter.onError = ()=>FilterErrorBehavior.Throw
+        expect(()=>flexvars.replace("{|add|add|throw|add|add}",0)).toThrow(MyError)
+        // 返回空值，然后中止后续过滤器
+        throwFilter.onError = ()=>"(空)"
+        expect(flexvars.replace("{|add|add|throw|add|add}",0)).toBe("(空)")        
+
+        expect(fn).not.toBeCalled()
+        throwFilter.onError = undefined
+        expect(flexvars.replace("{|throw}",0)).toBe("0")   
+        expect(fn).toBeCalled()
+    })
+
+
+
+    test("在变量中指定出错逻辑",()=>{
+        class MyError extends Error{}
+        let fn = vi.fn()
+        flexvars.options.onError = ()=>{
+            fn()
+            return FilterErrorBehavior.Ignore
+        }        
+        const addFilter = flexvars.addFilter({
+            name:"add",
+            args:["step"],
+            default:{step:1},
+            next(value,args,context){
+                return parseInt(value)+args.step
+            }
+        })              
+        let throwErrFn = vi.fn()
+        const throwFilter = flexvars.addFilter({
+            name:"throw",
+            next(value,args,context){
+                throw new MyError("出错了")
+            },
+            onError: ()=>{
+                throwErrFn()
+                return FilterErrorBehavior.Ignore
+            }        
+        })
+        // error过滤器的出错逻辑优先级高于全局出错逻辑
+        // 默认忽略错误
+        expect(flexvars.replace("{|error|add|add|throw|add|add}",0)).toBe("4")        
+        expect(flexvars.replace("{|add|error|add|throw|add|add}",0)).toBe("4")        
+        expect(flexvars.replace("{|add|add|error|throw|add|add}",0)).toBe("4")        
+        expect(flexvars.replace("{|add|add|throw|error|add|add}",0)).toBe("4")        
+        expect(flexvars.replace("{|add|add|throw|add|error|add}",0)).toBe("4")        
+        expect(flexvars.replace("{|add|add|throw|add|add|error}",0)).toBe("4")        
+        // 指定abort参数
+        expect(flexvars.replace("{|error('abort')|add|add|throw|add|add}",0)).toBe("2")        
+        expect(flexvars.replace("{|add|error('abort')|add|throw|add|add}",0)).toBe("2")        
+        expect(flexvars.replace("{|add|add|error('abort')|throw|add|add}",0)).toBe("2")        
+        expect(flexvars.replace("{|add|add|throw|error('abort')|add|add}",0)).toBe("2")        
+        expect(flexvars.replace("{|add|add|throw|add|error('abort')|add}",0)).toBe("2")        
+        expect(flexvars.replace("{|add|add|throw|add|add|error('abort')}",0)).toBe("2")     
+        // 指定throw参数
+        expect(()=>flexvars.replace("{|error('throw')|add|add|throw|add|add}",0)).toThrow(MyError)      
+        expect(()=>flexvars.replace("{|add|error('throw')|add|throw|add|add}",0)).toThrow(MyError)
+        expect(()=>flexvars.replace("{|add|add|error('throw')|throw|add|add}",0)).toThrow(MyError)
+        expect(()=>flexvars.replace("{|add|add|throw|error('throw')|add|add}",0)).toThrow(MyError)
+        expect(()=>flexvars.replace("{|add|add|throw|add|error('throw')|add}",0)).toThrow(MyError)
+        expect(()=>flexvars.replace("{|add|add|throw|add|add|error('throw')}",0)).toThrow(MyError)
+
+        expect(fn).not.toBeCalled()
+        expect(throwErrFn).not.toBeCalled()
 
         
+    })
         
 })

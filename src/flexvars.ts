@@ -3,6 +3,7 @@ import { assignObject } from "flex-tools/object/assignObject";
 import { isPlainObject } from "flex-tools/typecheck/isPlainObject";
 import {  FlexFilter } from "./filter";
 import { executeFilters, forEachInterpolatedVars, FlexVariableContext } from './parser'; 
+import { defaultErrorFilter } from './filters';
 
 
 
@@ -20,9 +21,9 @@ export enum FilterEmptyBehavior {
 export interface FlexVarsOptions {
 	debug?: boolean; // 是否启用调试模式,启用后会在控制台输出调试信息
 	// 预定义的过滤器列表
-    filters?: Record<string, FlexFilter | FlexFilter['handle'] >;                
+    filters?: Record<string, FlexFilter | FlexFilter['next'] >;                
     // 动态过滤器，当预定义的过滤器列表中没有找到对应的过滤器时，会调用此函数来获取过滤器
-	getFilter?(name: string,context:FlexVariableContext): FlexFilter | FlexFilter['handle'] | undefined;                   
+	getFilter?(name: string): FlexFilter | FlexFilter['next'] | null;                   
 	log?(message, ...args: any[]): void;                                // 日志输出函数
     // 当没有对应的插值变量为空时，如何处理?
     // default: 使用空字符代表
@@ -45,7 +46,6 @@ export type RequiredFlexVarsOptions = Omit<Required<FlexVarsOptions>,"filters"> 
 
 export class FlexVars {
 	options: RequiredFlexVarsOptions;
-    private _commonFilters:{before:string[],after:string[]} = {before:[],after:[]}         // 特定用途的过滤器列表
 	constructor(options?: FlexVarsOptions) {
 		this.options = assignObject(
 			{
@@ -61,47 +61,42 @@ export class FlexVars {
         this.addBuildinFilters();		
 	}
     get filters(){return this.options.filters};
-    get commonFilters(){return this._commonFilters};                 // 通用过滤器,用于执行过滤之前之后以及出错时执行的过滤器
     get context(){return this.options.config}
 
     /**
      * 增加默认的处理函数
      */
     private addDefaultHandlers(){
-        this.options.onError = (error,value,args,context)=>{
-            return FilterErrorBehavior.Ignore
-        }
-        // 默认空值处理函数
-        this.options.onEmpty = (value,args,context)=>{
-            return  ''
-        }
+        this.options.onError = (error,value,args,context)=>FilterErrorBehavior.Ignore
+        this.options.onEmpty = (value,args,context)=>''
         this.options.isEmpty = (value)=>value===null  
     }
     /**
      * 增加一个过滤器
-     * @param define 
+     * @param filter   过滤器声明数据
      */
     addFilter(filter:FlexFilter){
         if(!filter.name) throw new Error("Filter name cannot be empty")
-        if(typeof(filter.handle)!=="function")  throw new Error("The filter must provide a handle function")
-        return this.filters[filter.name]= filter
+        if(typeof(filter.next)!=="function")  throw new Error("The filter must provide a next function")
+        filter = assignObject({            
+            priority:'normal'
+        },filter)
+        return this.filters[filter.name!]= filter
     }
     /**
      * 移除过滤器
      * @param name 
      */
     removeFilter(name:string){    
-        delete this.filters[name]
-        this._commonFilters.before = this._commonFilters.before.filter(n=>n!=name)
-        this._commonFilters.after = this._commonFilters.after.filter(n=>n!=name)        
+        delete this.filters[name] 
     }
-    getFilter(name: string,context:FlexVariableContext): FlexFilter | undefined {
+    getFilter(name: string): FlexFilter | null {
         if(name in this.options.filters){
             return this.options.filters[name]
         }else{
-            let r =  this.options.getFilter(name,context)
+            let r =  this.options.getFilter(name)
             if(typeof(r)=='function'){
-                return {name,handle:r}
+                return {name,next:r}
             }else{
                 return r
             }
@@ -110,7 +105,7 @@ export class FlexVars {
 
 	private addBuildinFilters() {
         // 默认错误处理器 , error("throw" | "abort" | "ignore" | 'ffffff',message)
-        this.addFilter()
+        this.addFilter(defaultErrorFilter)
         
     } 
 	/**
@@ -118,21 +113,16 @@ export class FlexVars {
 	 *
 	 * @remarks
 	 *
-	 * 将过滤器中的use参数指定的beforeFilters和afterFilters保存起来，方便后续执行
 	 *
 	 */
 	private normalizeFilters() {
 		Object.entries(this.options.filters).forEach(([name, filter]) => {
             let normalizedFilter= assignObject({                
                 name,
-                type: 'default',
+                priority: 'normal',
                 args:null,
-                filter: (value) => value
-            },typeof(filter)=='function' ? {filter} : filter) as FlexFilter                  
-
-            if(["before",'after'].includes(filter.type!)){
-                this._commonFilters[filter.type!].push(name)
-            }
+                next: (value) => value
+            },typeof(filter)=='function' ? {filter} : filter) as FlexFilter
             this.options.filters[name] = normalizedFilter
 		});
 	}
@@ -179,8 +169,7 @@ export class FlexVars {
 		} else {
 			// ****************************位置插值****************************
 			// 如果只有一个Array参数，则认为是位置变量列表，进行展开
-			const params = args.length === 1 && Array.isArray(args[0]) ? [...args[0]] : args;            
-
+			const params = args.length === 1 && Array.isArray(args[0]) ? [...args[0]] : args;                        
 			//if (params.length === 0) return template; // 没有变量则不需要进行插值处理，返回原字符串
 			let i = 0;
 			return forEachInterpolatedVars(template,(name, filters, match) => {
