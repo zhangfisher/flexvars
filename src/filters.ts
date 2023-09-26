@@ -1,9 +1,7 @@
 
-import { FilterErrorBehavior } from "./flexvars"
 import type { FlexFilterContext } from "./parser"
-import type { FlexFilter } from './filter';
-import { AbortFilterError, IgnoreFilterError } from './parser';
-
+import type { FlexFilter } from './filter'; 
+import { FlexFilterAbortError, FlexFilterError, FlexFilterIgnoreError } from "./errors";
 /**
  * 默认的处理过滤器
  * 
@@ -35,7 +33,8 @@ export const defaultErrorFilter = {
         const operate = args.operate.toLowerCase()
         const inputValue = args.value
         context.onError = (error:Error,value:any,args:Record<string,any>,context:FlexFilterContext)=>{
-            if(!(error instanceof Error))  return error            
+            if(!(error instanceof Error))  throw error
+            if(error instanceof FlexFilterError) throw error
             if(operate=='throw'){
                 if(inputValue){
                     throw new Error(inputValue)
@@ -43,9 +42,9 @@ export const defaultErrorFilter = {
                     throw error
                 }                
             }else if(operate=='abort'){
-                throw new AbortFilterError(inputValue)
+                throw new FlexFilterAbortError(inputValue)
             }else if(operate=='ignore'){
-                throw new IgnoreFilterError(inputValue)
+                throw new FlexFilterIgnoreError(inputValue)
             }else{
                 return value
             }
@@ -61,7 +60,7 @@ export const defaultErrorFilter = {
  * 
  * @remarks
  * 
- * empty                    // 返回空字符串 不再执行后续的过滤器，默认行为
+ * empty   == empty('abort')  ==empty('abort','')                  // 返回空字符串 不再执行后续的过滤器，默认行为
  * // 提供默认值，继续执行后续的过滤器
  * empty('ignore')          
  * empty('ignore','')          
@@ -79,17 +78,17 @@ export const defaultEmptyFilter = {
     name:"empty",
     priority:"before",              // 前置过滤器
     args:["operate","value"],
-    default:{operate:"ignore",value:""},
+    default:{operate:"abort",value:""},
     next(value,args,context){
         const operate = args.operate.toLowerCase()
         const inputValue = args.value.toLowerCase()
         context.onEmpty = (value:any,args:Record<string,any>,context:FlexFilterContext)=>{
             if(operate=='throw'){
-                return new Error(args.message || 'empty value')
+                throw new Error(inputValue || 'empty value')
             }else if(operate=='abort'){
-                return new AbortFilterError(inputValue)
+                throw  new FlexFilterAbortError(inputValue)
             }else if(operate=='ignore'){
-                return new IgnoreFilterError(inputValue)
+                throw  new FlexFilterIgnoreError(inputValue)
             }else{
                 return value
             }

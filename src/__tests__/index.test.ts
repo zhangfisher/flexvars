@@ -1,5 +1,6 @@
 import { describe,beforeAll,test,beforeEach,expect,vi} from "vitest"
-import { FilterEmptyBehavior, FilterErrorBehavior, FlexVars } from '../flexvars';
+import { FilterEmptyBehavior, FilterBehaviors, FlexVars } from '../flexvars';
+import { FlexFilterEmptyError } from "../errors";
 
 
 const AddFilter = {
@@ -159,14 +160,14 @@ describe("过滤器", () => {
         // 默认忽略错误
         expect(flexvars.replace("{|throw}",0)).toBe("0")        
         // 抛出错误
-        flexvars.options.onError = ()=>FilterErrorBehavior.Throw 
+        flexvars.options.onError = ()=>FilterBehaviors.Throw 
         expect(()=>flexvars.replace("{|add|add|throw|add|add}",0)).toThrow(MyError)
 
         // 中止后续过滤器
-        flexvars.options.onError = ()=>FilterErrorBehavior.Abort
+        flexvars.options.onError = ()=>FilterBehaviors.Abort
         expect(flexvars.replace("{|add|add|throw|add|add}",0)).toBe("2")
         // 忽略或跳过出错的过滤器
-        flexvars.options.onError = ()=>FilterErrorBehavior.Ignore
+        flexvars.options.onError = ()=>FilterBehaviors.Ignore
         expect(flexvars.replace("{|add|add|throw|add|add}",0)).toBe("4")
 
 
@@ -176,7 +177,7 @@ describe("过滤器", () => {
         let fn = vi.fn()
         flexvars.options.onError = ()=>{
             fn()
-            return FilterErrorBehavior.Ignore
+            return FilterBehaviors.Ignore
         }
         const addFilter = flexvars.addFilter(AddFilter)      
         const throwFilter = flexvars.addFilter({
@@ -185,11 +186,11 @@ describe("过滤器", () => {
                 throw new MyError("出错了")
             }
         })
-        throwFilter.onError = ()=>FilterErrorBehavior.Ignore
+        throwFilter.onError = ()=>FilterBehaviors.Ignore
         expect(flexvars.replace("{|throw}",0)).toBe("0")        
-        throwFilter.onError = ()=>FilterErrorBehavior.Abort
+        throwFilter.onError = ()=>FilterBehaviors.Abort
         expect(flexvars.replace("{|add|add|throw|add|add}",0)).toBe("2")        
-        throwFilter.onError = ()=>FilterErrorBehavior.Throw
+        throwFilter.onError = ()=>FilterBehaviors.Throw
         expect(()=>flexvars.replace("{|add|add|throw|add|add}",0)).toThrow(MyError)
         // 返回空值，然后中止后续过滤器
         throwFilter.onError = ()=>"(空)"
@@ -208,7 +209,7 @@ describe("过滤器", () => {
         let fn = vi.fn()
         flexvars.options.onError = ()=>{
             fn()
-            return FilterErrorBehavior.Ignore
+            return FilterBehaviors.Ignore
         }        
         const addFilter = flexvars.addFilter(AddFilter)              
         let throwErrFn = vi.fn()
@@ -219,7 +220,7 @@ describe("过滤器", () => {
             },
             onError: ()=>{
                 throwErrFn()
-                return FilterErrorBehavior.Ignore
+                return FilterBehaviors.Ignore
             }        
         })
         // error过滤器的出错逻辑优先级高于全局出错逻辑
@@ -249,15 +250,70 @@ describe("过滤器", () => {
     })
 
     test("默认空值处理",()=>{
-        // let fn = vi.fn()
-        // flexvars.options.onEmpty = ()=>{
-        //     fn()
-        //     return FilterEmptyBehavior.Ignore
-        // }        
-        // const addFilter = flexvars.addFilter(AddFilter)              
-        // const nullFilter = flexvars.addFilter(NullFilter)              
-        // let throwErrFn = vi.fn()
-      
-    })
+        const addFilter = flexvars.addFilter(AddFilter)              
+        const nullFilter = flexvars.addFilter(NullFilter)              
         
+        // 默认返回空字符串并中止后续过滤器的执行
+        expect(flexvars.replace("X{|null}",0)).toBe("X")
+        expect(flexvars.replace("X{add|null|add}",0)).toBe("X")
+        expect(flexvars.replace("X{add|add|null|add}",0)).toBe("X")
+        // 忽略空值，继续执行后续过滤器
+        flexvars.options.onEmpty = ()=>FilterBehaviors.Ignore
+        expect(flexvars.replace("X{|null}",0)).toBe("X0")
+        expect(flexvars.replace("X{|add|null|add}",0)).toBe("X2")
+        expect(flexvars.replace("X{|add|add|null|add}",0)).toBe("X3")
+
+        //中止后续过滤器
+        flexvars.options.onEmpty = ()=>FilterBehaviors.Abort
+        expect(flexvars.replace("X{|null}",0)).toBe("X0")
+        expect(flexvars.replace("X{|add|null|add}",0)).toBe("X1")
+        expect(flexvars.replace("X{|add|add|null|add}",0)).toBe("X2")
+      
+        // 触发错误
+        flexvars.options.onEmpty = ()=>FilterBehaviors.Throw
+        expect(()=>flexvars.replace("X{|null}",0)).toThrow(FlexFilterEmptyError)
+        expect(()=>flexvars.replace("X{|add|null|add}",0)).toThrow(FlexFilterEmptyError)
+        expect(()=>flexvars.replace("X{|add|add|null|add}",0)).toThrow(FlexFilterEmptyError)
+
+        // 使用指定值替换
+        flexvars.options.onEmpty = ()=>"(空)"
+        expect(flexvars.replace("X{|null}",0)).toBe("X(空)")
+        expect(flexvars.replace("X{|add|null|add}",0)).toBe("X(空)")
+        expect(flexvars.replace("X{|add|add|null|add}",0)).toBe("X(空)")
+
+
+    })
+    test("默认空值处理时指定返回值",()=>{ 
+        const addFilter = flexvars.addFilter(AddFilter)              
+        const nullFilter = flexvars.addFilter(NullFilter)  
+        // 默认返回空字符串并中止后续过滤器的执行
+        expect(flexvars.replace("X{|null}",0)).toBe("X")
+        expect(flexvars.replace("X{add|null|add}",0)).toBe("X")
+        expect(flexvars.replace("X{add|add|null|add}",0)).toBe("X")
+        // 忽略空值，继续执行后续过滤器
+        flexvars.options.onEmpty = ()=>FilterBehaviors.Ignore
+        expect(flexvars.replace("X{|null}",0)).toBe("X0")
+        expect(flexvars.replace("X{|add|null|add}",0)).toBe("X2")
+        expect(flexvars.replace("X{|add|add|null|add}",0)).toBe("X3")
+
+        //中止后续过滤器
+        flexvars.options.onEmpty = ()=>FilterBehaviors.Abort
+        expect(flexvars.replace("X{|null}",0)).toBe("X0")
+        expect(flexvars.replace("X{|add|null|add}",0)).toBe("X1")
+        expect(flexvars.replace("X{|add|add|null|add}",0)).toBe("X2")
+      
+        // 触发错误
+        flexvars.options.onEmpty = ()=>FilterBehaviors.Throw
+        expect(()=>flexvars.replace("X{|null}",0)).toThrow(FlexFilterEmptyError)
+        expect(()=>flexvars.replace("X{|add|null|add}",0)).toThrow(FlexFilterEmptyError)
+        expect(()=>flexvars.replace("X{|add|add|null|add}",0)).toThrow(FlexFilterEmptyError)
+
+        // 使用指定值替换
+        flexvars.options.onEmpty = ()=>"(空)"
+        expect(flexvars.replace("X{|null}",0)).toBe("X(空)")
+        expect(flexvars.replace("X{|add|null|add}",0)).toBe("X(空)")
+        expect(flexvars.replace("X{|add|add|null|add}",0)).toBe("X(空)")
+
+
+    })
 })

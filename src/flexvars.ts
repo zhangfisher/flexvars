@@ -3,24 +3,21 @@ import { assignObject } from "flex-tools/object/assignObject";
 import { isPlainObject } from "flex-tools/typecheck/isPlainObject";
 import {  FlexFilter } from "./filter";
 import { executeFilters, forEachInterpolatedVars, FlexVariableContext } from './parser'; 
-import { defaultErrorFilter } from './filters';
+import { defaultEmptyFilter, defaultErrorFilter } from './filters';
 
 
 
 // 当过滤器执行出错时的处理方式
-export enum FilterErrorBehavior {
-    Abort,Throw,Ignore
-}
-// 当过滤器返回空值时(通过isEmpty()判断)的出错方式
-export enum FilterEmptyBehavior {
-    Empty,              // 默认： 直接返回空字符串，不再执行后续过滤器
-    Ignore,             // 忽略,允许提供一个墨迹相当于没有过滤器
-    Throw,              // 触发异常
-    Abort,              // 中止后续过滤器执行
+export const FilterBehaviors  = {
+    Abort:Symbol('Abort'),
+    Throw:Symbol('Throw'),
+    Ignore:Symbol('Ignore'),
 }
 
-export type FilterErrorHandler = (this:FlexVars,error:Error,value:any,args:any[],context:FlexVariableContext)=>FilterErrorBehavior | string;     
-export type FilterEmptyHandler = (this:FlexVars,value:any,args:any[],context:FlexVariableContext)=>FilterEmptyBehavior | string 
+export type FilterBehaviorType = typeof FilterBehaviors[keyof typeof FilterBehaviors]
+
+export type FilterErrorHandler = (this:FlexVars,error:Error,value:any,args:any[],context:FlexVariableContext)=>FilterBehaviorType | string;     
+export type FilterEmptyHandler = (this:FlexVars,value:any,args:any[],context:FlexVariableContext)=>FilterBehaviorType | string 
 
 export interface FlexVarsOptions {
 	debug?: boolean; // 是否启用调试模式,启用后会在控制台输出调试信息
@@ -71,7 +68,7 @@ export class FlexVars {
      * 增加默认的处理函数
      */
     private addDefaultHandlers(){
-        this.options.onError = (error,value,args,context)=>FilterErrorBehavior.Ignore
+        this.options.onError = (error,value,args,context)=>FilterBehaviors.Ignore
         this.options.onEmpty = (value,args,context)=>''
         this.options.isEmpty = (value)=>value===null  
     }
@@ -106,11 +103,12 @@ export class FlexVars {
             }
         }
     }
-
+    /**
+     * 新增内置过滤器
+     */
 	private addBuildinFilters() {
-        // 默认错误处理器 , error("throw" | "abort" | "ignore" | 'ffffff',message)
         this.addFilter(defaultErrorFilter)
-        
+        this.addFilter(defaultEmptyFilter)        
     } 
 	/**
 	 * 对传入过滤器进行规范化处理
