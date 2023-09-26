@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   flex-tools:
-    specifier: ^1.3.33
-    version: 1.3.33
+    specifier: ^1.3.35
+    version: 1.3.35
 
 devDependencies:
   vitest:
@@ -539,8 +539,8 @@ packages:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
     dev: false
 
-  /flex-tools@1.3.33:
-    resolution: {integrity: sha512-WKsCHgOrXoi4W1czCsz9yJir7M+kyk+nIIhjlPFAElmo9xycOqB4qsnEfxeWBX6K6uCe7gaqvut4fovHpYhQJw==}
+  /flex-tools@1.3.35:
+    resolution: {integrity: sha512-bxl/+iXAp1nL2GWQwwU4wdkaHjsb0z0nH7IzKsuHrlfJfYlx7sK3jeSLxqh1Lc40gY/pz6K8gXm/VDN/NkvtcA==}
     dependencies:
       art-template: 4.13.2
       glob: 10.3.4

@@ -1,8 +1,22 @@
 import { describe,beforeAll,test,beforeEach,expect,vi} from "vitest"
-import { FilterErrorBehavior, FlexVars } from '../flexvars';
+import { FilterEmptyBehavior, FilterErrorBehavior, FlexVars } from '../flexvars';
 
 
-
+const AddFilter = {
+    name:"add",
+    args:["step"],
+    default:{step:1},
+    next(value,args,context){
+        return parseInt(value)+args.step
+    }
+}
+// 返回空值的过滤器
+const NullFilter =  {
+    name:"null",
+    next(value,args,context){
+        return null!        // 虽然类型约束为null，但是实际上返回的是undefined
+    }        
+}
 
 describe("基本的变量插值功能", () => {
     let flexvars:FlexVars  
@@ -124,15 +138,8 @@ describe("过滤器", () => {
     })    
 
 
-    test("过滤器连续调用",()=>{
-        const filter =flexvars.addFilter({
-            name:"add",
-            args:["step"],
-            default:{step:1},
-            next(value,args,context){
-                return parseInt(value)+args.step
-            }
-        })
+    test("过滤器链式调用",()=>{
+        const filter =flexvars.addFilter(AddFilter)
         expect(flexvars.replace("{|add}",0)).toBe("1")        
         expect(flexvars.replace("{|add|add}",0)).toBe("2")        
         expect(flexvars.replace("{|add|add|add}",0)).toBe("3")        
@@ -142,14 +149,7 @@ describe("过滤器", () => {
 
     test("过滤器默认出错处理",()=>{
         class MyError extends Error{}
-        const filter =flexvars.addFilter({
-            name:"add",
-            args:["step"],
-            default:{step:1},
-            next(value,args,context){
-                return parseInt(value)+args.step
-            }
-        })
+        const filter =flexvars.addFilter(AddFilter)
         flexvars.addFilter({
             name:"throw",
             next(value,args,context){
@@ -171,21 +171,14 @@ describe("过滤器", () => {
 
 
     })
-    test("出错处理逻辑指定在过滤器上",()=>{
+    test("过滤器指定出错处理逻辑",()=>{
         class MyError extends Error{}
         let fn = vi.fn()
         flexvars.options.onError = ()=>{
             fn()
             return FilterErrorBehavior.Ignore
         }
-        const addFilter = flexvars.addFilter({
-            name:"add",
-            args:["step"],
-            default:{step:1},
-            next(value,args,context){
-                return parseInt(value)+args.step
-            }
-        })      
+        const addFilter = flexvars.addFilter(AddFilter)      
         const throwFilter = flexvars.addFilter({
             name:"throw",
             next(value,args,context){
@@ -210,21 +203,14 @@ describe("过滤器", () => {
 
 
 
-    test("在变量中指定出错逻辑",()=>{
+    test("在过滤器调用时指定出错逻辑",()=>{
         class MyError extends Error{}
         let fn = vi.fn()
         flexvars.options.onError = ()=>{
             fn()
             return FilterErrorBehavior.Ignore
         }        
-        const addFilter = flexvars.addFilter({
-            name:"add",
-            args:["step"],
-            default:{step:1},
-            next(value,args,context){
-                return parseInt(value)+args.step
-            }
-        })              
+        const addFilter = flexvars.addFilter(AddFilter)              
         let throwErrFn = vi.fn()
         const throwFilter = flexvars.addFilter({
             name:"throw",
@@ -258,11 +244,20 @@ describe("过滤器", () => {
         expect(()=>flexvars.replace("{|add|add|throw|error('throw')|add|add}",0)).toThrow(MyError)
         expect(()=>flexvars.replace("{|add|add|throw|add|error('throw')|add}",0)).toThrow(MyError)
         expect(()=>flexvars.replace("{|add|add|throw|add|add|error('throw')}",0)).toThrow(MyError)
-
         expect(fn).not.toBeCalled()
-        expect(throwErrFn).not.toBeCalled()
+        expect(throwErrFn).not.toBeCalled()        
+    })
 
-        
+    test("默认空值处理",()=>{
+        // let fn = vi.fn()
+        // flexvars.options.onEmpty = ()=>{
+        //     fn()
+        //     return FilterEmptyBehavior.Ignore
+        // }        
+        // const addFilter = flexvars.addFilter(AddFilter)              
+        // const nullFilter = flexvars.addFilter(NullFilter)              
+        // let throwErrFn = vi.fn()
+      
     })
         
 })

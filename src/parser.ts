@@ -36,7 +36,7 @@
 
  import { isPlainObject } from "flex-tools/typecheck/isPlainObject"
  import { isFunction } from "flex-tools/typecheck/isFunction"
- import { FilterInputChain, parseFilters, FlexFilter, FilexFilterErrorBehavior } from './filter';
+ import { FilterInputChain, parseFilters, FlexFilter } from './filter';
 import { assignObject } from 'flex-tools/object/assignObject';
 import { FilterEmptyBehavior, FilterErrorBehavior, FlexVars } from "./flexvars";
 import { replaceAll } from "flex-tools/string/replaceAll";
@@ -140,22 +140,23 @@ export interface FlexVariableContext {
     template:string,                    // 当前模板字符串，即整个字符串
     match:string,                       // 当前匹配到的变量原始字符串      
     onError?:(this:FlexVars,error:Error,value:any,args:Record<string,any>,context:FlexFilterContext)=>FilterErrorBehavior | string;     
+    onEmpty?:(this:FlexVars,value:any,args:Record<string,any>,context:FlexFilterContext)=>FilterEmptyBehavior | string | Error;
 }
 
 export interface FlexFilterContext extends FlexVariableContext{
     getConfig:()=>Record<string,any>    // 指定过滤器的配置参数
 }
 
-export class AbortFilterError extends Error{ } 
 export class ThrowFilterError extends Error{ } 
 // 用来传递给过滤器函数的参数
 export class ReturnValueFilterError extends Error{     
-    constructor(public value:any) {
+    constructor(public value?:any) {
         super()
     }
 } 
+export class AbortFilterError extends ReturnValueFilterError{}
+export class IgnoreFilterError extends ReturnValueFilterError{}
 
- 
 
  /**
   * 执行过滤器器并返回结果
@@ -181,10 +182,10 @@ export function executeFilters(this:FlexVars, filterDefines:FilterInputChain[], 
             value = filter.call(this,value);		 
         }catch(e:any){
             if(e instanceof AbortFilterError){
+                if(e.value!=null) value = e.value
                 break
-            }else if(e instanceof ReturnValueFilterError){
-                value = e.value
-                break
+            }else if(e instanceof IgnoreFilterError){
+                if(e.value!=null) value = e.value
             }else{
                 throw e
             }
@@ -194,6 +195,17 @@ export function executeFilters(this:FlexVars, filterDefines:FilterInputChain[], 
  }
 
 
+/**
+ * 
+ * 当过滤器返回空值时的处理行为
+ * 
+ * @remarks 
+ */
+ function executeEmptyHandler(this:FlexVars,value:any,args:any[],filter:FlexFilter,context:FlexFilterContext){
+    const emptyHandler = context.onEmpty || filter.onEmpty || this.options.onEmpty
+    if(typeof(emptyHandler)!="function") return value
+    return emptyHandler.call(this,value,args,context) 
+}
  /**
   *  当执行过滤器器出错时的处理行为
   * 
@@ -209,51 +221,9 @@ export function executeFilters(this:FlexVars, filterDefines:FilterInputChain[], 
 function executeErrorHandler(this:FlexVars,error:Error,value:any,args:any[],filter:FlexFilter,context:FlexFilterContext){
     const errorHandler =context.onError || filter.onError || this.options.onError
     if(typeof(errorHandler)!="function") return value
-    try{
-        let r =  errorHandler.call(this,error,value,args,context)             
-        if(r==FilterErrorBehavior.Ignore){
-            return value        // 返回上一次的结果，相当于本次过滤器没有执行
-        }else if(r==FilterErrorBehavior.Throw){
-            throw new ThrowFilterError()      
-        }else if(r==FilterErrorBehavior.Abort){ // 中断后续所有过滤器的执行
-            throw new AbortFilterError()
-        }else if(r instanceof Error){ // 返回空字符串
-            throw r
-        }else{ // 返回值时
-            throw new ReturnValueFilterError(r)
-        }
-    }catch(e:any){
-        if(e instanceof ThrowFilterError){
-            throw error            
-        }else{
-            this.log(`执行过滤器<{${filter.name}(${value})}>错误处理函数时时出错: ${e.stack}`)
-            throw e
-        }   
-    }     
+    return  errorHandler.call(this,error,value,args,context)             
 }
 
-/**
- * 
- * 当过滤器返回空值时的处理行为
- *  
- * 
- */
-function executeEmptyHandler(this:FlexVars,value:any,args:any[],filter:FlexFilter,context:FlexFilterContext){
-    const emptyHandler = this.options.onEmpty
-    if(typeof(emptyHandler)!="function") return value
-    try{
-       const r =  emptyHandler.call(this,value,args,context) 
-       if(r== FilterEmptyBehavior.Ignore){
-           return value
-       }else if(typeof(r)=='string'){
-            return r
-       }else{
-            return ''
-       }
-   }catch(e:any){
-       return ''
-   }     
-}
 
 /**
  * 
@@ -285,10 +255,12 @@ function wrapperFilter(this:FlexVars,filter:FlexFilter,args:any[], context:FlexV
             getConfig:()=>filter.configKey ? getByPath(this.options.config,filter.configKey) : this.options.config
         }) as FlexFilterContext
         try{
-            result = filter.next.call(this,value,finalArgs,filterContext)
-            if(this.options.isEmpty(result)){
+            // 如果输入值为空，则执行空值处理函数
+            if(this.options.isEmpty(value)){
                 result = executeEmptyHandler.call(this,value,finalArgs,filter,filterContext)
             }
+            // 执行过滤器
+            result = filter.next.call(this,value,finalArgs,filterContext)
         }catch(e:any){
             e.filter = filter.name;            
             this.log(`当执行过滤器器<${context.match}:${filter.name}>时出错:${e.stack}`)
@@ -317,7 +289,7 @@ function getSortedFilters(this:FlexVars,filterDefines:FilterInputChain) : ([Flex
     let filters =filterDefines.map(([name,args])=>[this.getFilter(name),args])// 找出有效的过滤器
     .filter(([filter])=>filter!= null) as FilterInfos    
     // 过滤无效的过滤器
-    filters.reduce<FilterInfos>((prev:FilterInfos,[filter,args])=>{            // 处理优先级排序
+    filters = filters.reduce<FilterInfos>((prev:FilterInfos,[filter,args])=>{            // 处理优先级排序
         if(filter){
             if(filter.priority=='before'){
                 prev.unshift([filter,args])
@@ -364,3 +336,33 @@ function getSortedFilters(this:FlexVars,filterDefines:FilterInputChain) : ([Flex
  }
   
  
+
+
+
+//  function executeErrorHandler(this:FlexVars,error:Error,value:any,args:any[],filter:FlexFilter,context:FlexFilterContext){
+//     const errorHandler =context.onError || filter.onError || this.options.onError
+//     if(typeof(errorHandler)!="function") return value
+//     try{
+//         let r =  errorHandler.call(this,error,value,args,context)             
+//         if(r==FilterErrorBehavior.Ignore){
+//             return value        // 返回上一次的结果，相当于本次过滤器没有执行
+//         }else if(r==FilterErrorBehavior.Throw){
+//             throw new ThrowFilterError()      
+//         }else if(r==FilterErrorBehavior.Abort){ // 中断后续所有过滤器的执行
+//             throw new AbortFilterError()
+//         }else if(r instanceof Error){ // 返回空字符串
+//             throw r
+//         }else{ // 返回值时
+//             throw new ReturnValueFilterError(r)
+//         }
+//     }catch(e:any){
+//         if(e instanceof ThrowFilterError){
+//             throw error        
+//         }else if( e instanceof AbortFilterError){
+//             throw e
+//         }else{
+//             this.log(`执行过滤器<{${filter.name}(${value})}>错误处理函数时时出错: ${e.stack}`)
+//             throw e
+//         }   
+//     }     
+// }

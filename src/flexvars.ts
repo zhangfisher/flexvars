@@ -11,12 +11,16 @@ import { defaultErrorFilter } from './filters';
 export enum FilterErrorBehavior {
     Abort,Throw,Ignore
 }
-// 当过滤器返回空值时的出错方式
+// 当过滤器返回空值时(通过isEmpty()判断)的出错方式
 export enum FilterEmptyBehavior {
-    Empty,              // 返回空字符串
-    Ignore,             // 忽略，保持原始值
+    Empty,              // 默认： 直接返回空字符串，不再执行后续过滤器
+    Ignore,             // 忽略,允许提供一个墨迹相当于没有过滤器
     Throw,              // 触发异常
+    Abort,              // 中止后续过滤器执行
 }
+
+export type FilterErrorHandler = (this:FlexVars,error:Error,value:any,args:any[],context:FlexVariableContext)=>FilterErrorBehavior | string;     
+export type FilterEmptyHandler = (this:FlexVars,value:any,args:any[],context:FlexVariableContext)=>FilterEmptyBehavior | string 
 
 export interface FlexVarsOptions {
 	debug?: boolean; // 是否启用调试模式,启用后会在控制台输出调试信息
@@ -33,10 +37,10 @@ export interface FlexVarsOptions {
     // 用来保存配置数据,主要用于供过滤器使用，每一个过滤器均可以在配置中读取到
 	config?: Record<string, any>; 
     // 当执行过滤器时出错时的处理函数, BREAK:中止后续过滤器执行, THROW:抛出异常, IGNORE:忽略继续执行后续过滤器
-    onError?:(this:FlexVars,error:Error,value:any,args:any[],context:FlexVariableContext)=>FilterErrorBehavior | string;     
+    onError?:FilterErrorHandler
     // 当过滤器执行返回空值时的处理函数,空值是指null,undefined
     // 可以返回一个字符串用于替换空值，或者返回一个''表示空值
-    onEmpty?:(this:FlexVars,value:any,args:any[],context:FlexVariableContext)=>FilterEmptyBehavior | string               
+    onEmpty?:FilterEmptyHandler               
     // 判断一个值是否为空值的函数
     isEmpty?:(value:any)=>boolean;                                      
 }

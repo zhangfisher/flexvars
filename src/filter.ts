@@ -10,14 +10,11 @@
 
 
 import { escapeRegexpStr } from "./utils"
-import { get as getByPath } from "flex-tools/object/get"
 import { isNumber } from "flex-tools/typecheck/isNumber"
-import { isFunction } from "flex-tools/typecheck/isFunction"
-import { isPlainObject } from "flex-tools/typecheck/isPlainObject"
 import { safeParseJson } from "flex-tools/object/safeParseJson"
 import { addTagHelperFlags, removeTagHelperFlags } from "./tagHelper"
-import type { FilterEmptyBehavior, FilterErrorBehavior, FlexVars } from "./flexvars"
-import { FlexFilterContext, FlexVariableContext } from './parser';
+import type {  FilterEmptyHandler,  FilterErrorHandler } from "./flexvars"
+import { FlexFilterContext } from './parser';
 
 export type FilexFilterErrorBehavior = 'throw' | 'ignore' | 'break' 
  
@@ -244,7 +241,7 @@ export interface FlexFilter<T extends Record<string,any> = Record<string,any>>{
     // 过滤处理函数，用来实现过滤器的具体逻辑
     next:(value:any,args:T,context:FlexFilterContext)=>string  
     // 当执行过滤器时出错时的处理函数, BREAK:中止后续过滤器执行, THROW:抛出异常, IGNORE:忽略继续执行后续过滤器
-    onError?:(this:FlexVars,error:Error,value:any,args:Record<string,any>,context:FlexFilterContext)=>FilterErrorBehavior | string;     
+    onError?:FilterErrorHandler
     // 当过滤器执行返回空值时的处理函数,空值是指null,undefined 
-    onEmpty?:(this:FlexVars,value:any,args:Record<string,any>,context:FlexFilterContext)=>FilterEmptyBehavior | string        
+    onEmpty?: FilterEmptyHandler
 }
