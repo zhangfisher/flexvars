@@ -187,27 +187,7 @@ function parseFilterParams(strParams: string): any[] {
  //    匹配前后缀字符，用来提取前后缀字符
  // const varWithPipeRegexp =	/(?<!\\)\{(,\s*)?\s*(\w+)?((\s*\|\s*\w*(\(.*\)){0,1}\s*)*)\s*(\s*,)?\}/g;
  const varWithPipeRegexp =	/(?<!\\)\{([\S]+\s)?\s*(\w+)?((\s*\|\s*\w*(\(.*?\)){0,1}\s*)*)\s*(\s[\S]+)?\}/gm;
- 
 
-
- /**
-*
- *  判断是否有插值变量声明
- * 
- *  @remarks
- * 
- *  考虑到通过正则表达式进行插值的替换可能较慢
- * 因此提供一个简单方法来过滤掉那些不需要进行插值处理的字符串
- * 原理很简单，就是判断一下是否同时具有{和}字符，如果有则认为可能有插值变量，如果没有则一定没有插件变量，则就不需要进行正则匹配
- * 从而可以减少不要的正则匹配
- * 注意：当返回true时并不代码一定具有插值变量，比如说字符串"{a:1}"也会返回true，但是这种情况下是没有插值变量的。
-  * @param {*} str
-  * @returns {boolean}  true=可能包含插值变量
-  */
-export function hasInterpolation(str:string):boolean {
-     return str.includes("{") && str.includes("}");
- }
-  
 /**
  * 
  * 遍历字符中的插值变量并调用replacer函数进行替换
@@ -226,10 +206,6 @@ export function hasInterpolation(str:string):boolean {
 export function forEachInterpolatedVars(this:FlexVars, str:string, replacer: (name:string,prefix:string,suffix:string,filters:FilterInputChain,matched:string)=>string, options = {}) {
      let newStr = str, matched;
      let opts = Object.assign({replaceAll: true },options);
-
-    //  let regexStr:string      
-    //  regexStr = interpVarRegexp.replace("__PREFIX__",this.options.prefix ? escapeRegexpStr(`(${(this.options.prefix)}\s)?`) : '')
-    //  regexStr = regexStr.replace("__SUFFIX__",this.options.suffix ? escapeRegexpStr(`(\s*${this.options.suffix})?`) : '')
 
      const regex =varWithPipeRegexp
 
@@ -422,7 +398,7 @@ function wrapperFilter(this:FlexVars,filter:FlexFilter,args:any[], context:FlexV
 function getSortedFilters(this:FlexVars,filterDefines:FilterInputChain) : ([FlexFilter,any[]])[]  {
     type FilterInfos = ([FlexFilter,string[]])[] 
     const afterFilters:FilterInfos = []
-    let filters =filterDefines.map(([name,args])=>[this.getFilter(name),args])// 找出有效的过滤器
+    let filters =filterDefines.map(([name,args])=>[this.getFilter.call(this,name),args])// 找出有效的过滤器
     .filter(([filter])=>filter!= null) as FilterInfos    
     // 过滤无效的过滤器
     filters = filters.reduce<FilterInfos>((prev:FilterInfos,[filter,args])=>{            // 处理优先级排序

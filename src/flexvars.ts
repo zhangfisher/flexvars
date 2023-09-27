@@ -11,7 +11,7 @@ export interface FlexVarsOptions {
 	// 预定义的过滤器列表
     filters?: Record<string, FlexFilter | FlexFilter['next'] >;                
     // 动态过滤器，当预定义的过滤器列表中没有找到对应的过滤器时，会调用此函数来获取过滤器
-	getFilter?(name: string): FlexFilter | FlexFilter['next'] | null;                   
+	getFilter?(this:FlexVars,name: string): FlexFilter | FlexFilter['next'] | null;                   
 	log?(message:string, ...args: any[]): void;                                // 日志输出函数
     // 当没有对应的插值变量为空时，如何处理?
     // default: 使用空字符代表
@@ -45,11 +45,10 @@ export class FlexVars {
 			options
 		);
         this.addDefaultHandlers()
-		this.normalizeFilters();
-        this.addBuildinFilters();		
+		this.addBuildinFilters();	
+        this.normalizeFilters();        	
 	}
-    get filters(){return this.options.filters};
-    get context(){return this.options.config}
+    get filters(){return this.options.filters}
 
     /**
      * 增加默认的处理函数
@@ -82,7 +81,7 @@ export class FlexVars {
         if(name in this.options.filters){
             return this.options.filters[name]
         }else{
-            let r =  this.options.getFilter(name)
+            let r =  this.options.getFilter.call(this,name)
             if(typeof(r)=='function'){
                 return {name,next:r}
             }else{

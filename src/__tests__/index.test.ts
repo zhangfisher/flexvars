@@ -2,6 +2,7 @@ import { describe,beforeAll,test,beforeEach,expect,vi} from "vitest"
 import {  FlexVars } from '../flexvars';
 import { FlexFilterEmptyError } from "../errors";
 import { FilterBehaviors, FlexFilterContext } from '../types';
+import { e } from "vitest/dist/reporters-cb94c88b";
 
 
 const AddFilter = {
@@ -390,5 +391,27 @@ describe("过滤器", () => {
         expect(flexvars.replace("X{=( |add|empty('空')|add|null|add )}",0)).toBe("X=(空)")
     })
 
+    test("获取动态过滤器", () => {         
+        const fn = vi.fn()
+        flexvars.options.getFilter = function(name:string){
+            expect(this).toBeInstanceOf(FlexVars)
+            fn()
+            return (value:any)=>value
+        }
+        expect(flexvars.replace("{value|add|dec}",{value:"fisher"})).toBe("fisher")
+        expect(fn).toBeCalled()
+        expect(fn).toBeCalledTimes(2)
 
+    })
+    test("获取动态过滤器ss", () => {         
+        flexvars.addFilter({
+            name:"add",
+            args:["suffix"],
+            default:{suffix:"!"},
+            next: (value,args) => {
+                    return value + args.suffix;
+                }
+        });
+        expect(flexvars.replace("Hello, {name|add|add|add|add('*')}", { name: 'FlexVars' })).toBe("Hello, FlexVars!!!*")
+    })
 })

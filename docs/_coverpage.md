@@ -4,7 +4,8 @@
 
 >功能强大的字符串插值处理工具库
 
-[指南](./guide) 
+[中文](./cn/guide) 
+[English](./en/guide) 
 [Github](https://github.com/zhangfisher/flexvars)
 [Gitee](https://gitee.com/zhangfisher/flexvars)
 
