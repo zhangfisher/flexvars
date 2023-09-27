@@ -1,7 +1,6 @@
 
-import type { FlexFilterContext } from "./parser"
-import type { FlexFilter } from './filter'; 
-import { FlexFilterAbortError, FlexFilterError, FlexFilterIgnoreError } from "./errors";
+import { FlexFilterAbortError, FlexFilterEmptyError, FlexFilterError, FlexFilterIgnoreError } from "./errors";
+import { FlexFilter,FlexFilterContext } from './types';
 /**
  * 默认的处理过滤器
  * 
@@ -78,21 +77,21 @@ export const defaultEmptyFilter = {
     name:"empty",
     priority:"before",              // 前置过滤器
     args:["operate","value"],
-    default:{operate:"abort",value:""},
+    default:{operate:"abort",value:''},
     next(value,args,context){
         const operate = args.operate.toLowerCase()
-        const inputValue = args.value.toLowerCase()
+        const inputValue = args.value
         context.onEmpty = (value:any,args:Record<string,any>,context:FlexFilterContext)=>{
             if(operate=='throw'){
-                throw new Error(inputValue || 'empty value')
+                throw new FlexFilterEmptyError()
             }else if(operate=='abort'){
                 throw  new FlexFilterAbortError(inputValue)
             }else if(operate=='ignore'){
-                throw  new FlexFilterIgnoreError(inputValue)
+                throw  new FlexFilterIgnoreError()
             }else{
-                return value
+                return operate
             }
-        }       
+        }
         return value 
     }
 } as FlexFilter

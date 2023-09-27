@@ -1,20 +1,21 @@
 import { describe,beforeAll,test,beforeEach,expect,vi} from "vitest"
-import { FilterEmptyBehavior, FilterBehaviors, FlexVars } from '../flexvars';
+import {  FlexVars } from '../flexvars';
 import { FlexFilterEmptyError } from "../errors";
+import { FilterBehaviors, FlexFilterContext } from '../types';
 
 
 const AddFilter = {
     name:"add",
     args:["step"],
     default:{step:1},
-    next(value,args,context){
+    next(value:any,args:Record<string,any>,context:FlexFilterContext){
         return parseInt(value)+args.step
     }
 }
 // 返回空值的过滤器
 const NullFilter =  {
     name:"null",
-    next(value,args,context){
+    next(value:any,args:Record<string,any>,context:FlexFilterContext){
         return null!        // 虽然类型约束为null，但是实际上返回的是undefined
     }        
 }
@@ -34,6 +35,17 @@ describe("基本的变量插值功能", () => {
         expect(flexvars.replace("{x}{y}{z}",["a","b","c"])).toBe("abc")
         expect(flexvars.replace("{}{}",()=>["a","b","c"])).toBe("ab") 
     })
+
+    
+    test("指定前缀和后缀", () => {         
+        // 如果为空值时，不会显示前缀和后缀
+        expect(flexvars.replace("I am {( name )}")).toBe("I am ")
+        expect(flexvars.replace("I am {(  )}","tom")).toBe("I am (tom)")
+        expect(flexvars.replace("I am {( name )}","tom")).toBe("I am (tom)")        
+        expect(flexvars.replace("{, }{, }{, }","a","b","c")).toBe(",a,b,c")
+        expect(flexvars.replace("{, }{, }{, }","a","b","c")).toBe(",a,b,c")
+    })
+
 
     test("位置变量插值丢失变量时的处理", () => {       
         // 默认显示为空
@@ -313,7 +325,70 @@ describe("过滤器", () => {
         expect(flexvars.replace("X{|null}",0)).toBe("X(空)")
         expect(flexvars.replace("X{|add|null|add}",0)).toBe("X(空)")
         expect(flexvars.replace("X{|add|add|null|add}",0)).toBe("X(空)")
+    })
+
+
+    test("调用过滤器时传入空值处理",()=>{ 
+        flexvars.addFilter(AddFilter)              
+        flexvars.addFilter(NullFilter)   
+
+        // empty放在任意位置均可以
+
+        // // 默认是中止执行返回空字符串      
+        expect(flexvars.replace("X{|null|empty}",0)).toBe("X")
+        expect(flexvars.replace("X{|null|empty()}",0)).toBe("X")
+        expect(flexvars.replace("X{|add|null|add|empty}",0)).toBe("X")
+        expect(flexvars.replace("X{|add|empty|add|null|add}",0)).toBe("X")
+        
+        // // 默认是中止执行返回指定值     
+        expect(flexvars.replace("X{|null|empty('空')}",0)).toBe("X空")
+        expect(flexvars.replace("X{|null|empty('空')}",0)).toBe("X空")
+        expect(flexvars.replace("X{|add|null|add|empty('空')}",0)).toBe("X空")
+        expect(flexvars.replace("X{|add|empty('空')|add|null|add}",0)).toBe("X空")
+
+        // // 中止执行并返回指定值
+        expect(flexvars.replace("X{|null|empty('abort','*')}",0)).toBe("X*")
+        expect(flexvars.replace("X{|null|empty('abort','*')}",0)).toBe("X*")
+        expect(flexvars.replace("X{|add|null|add|empty('abort','*')}",0)).toBe("X*")
+        expect(flexvars.replace("X{|add|empty('abort','*')|add|null|add}",0)).toBe("X*")
+
+        
+        // 忽略空值，跳过执行后续过滤器
+        expect(flexvars.replace("X{|null|empty('ignore')}",0)).toBe("X0")
+        expect(flexvars.replace("X{|add|null|add|empty('ignore')}",0)).toBe("X2")
+        expect(flexvars.replace("X{|add|empty('ignore')|add|null|add}",0)).toBe("X3")
+        // empty=ignore时,第二个参数*无效
+        expect(flexvars.replace("X{|null|empty('ignore','*')}",0)).toBe("X0")
+        expect(flexvars.replace("X{|add|null|add|empty('ignore','*')}",0)).toBe("X2")
+        expect(flexvars.replace("X{|add|empty('ignore','*')|add|null|add}",0)).toBe("X3")
+
+        // 触发错误，当检测到空值时，抛出异常
+        expect(()=>flexvars.replace("X{|null|empty('throw')}",0)).toThrow(FlexFilterEmptyError)
+        expect(()=>flexvars.replace("X{|null|empty('throw')}",0)).toThrow(FlexFilterEmptyError)
+        expect(()=>flexvars.replace("X{|add|null|add|empty('throw')}",0)).toThrow(FlexFilterEmptyError)
+        expect(()=>flexvars.replace("X{|add|empty('throw')|add|null|add}",0)).toThrow(FlexFilterEmptyError)
+
 
 
     })
+
+    
+    test("过滤器执行后配套指定前缀和后缀", () => {         
+        flexvars.addFilter(AddFilter)              
+        flexvars.addFilter(NullFilter)   
+
+        // 如果为空值时，不会显示前缀和后缀
+        expect(flexvars.replace("X{, |null|empty}",0)).toBe("X")
+        expect(flexvars.replace("X{|null|empty() ,}",0)).toBe("X")
+        expect(flexvars.replace("X{, |add|null|add|empty}",0)).toBe("X")
+        expect(flexvars.replace("X{$: |add|empty|add|null|add}",0)).toBe("X")
+        
+        // // 默认是中止执行返回指定值     
+        expect(flexvars.replace("X{: |null|empty('空')}",0)).toBe("X:空")
+        expect(flexvars.replace("X{: |null|empty('空')}",0)).toBe("X:空")
+        expect(flexvars.replace("X{=( |add|null|add|empty('空') )}",0)).toBe("X=(空)")
+        expect(flexvars.replace("X{=( |add|empty('空')|add|null|add )}",0)).toBe("X=(空)")
+    })
+
+
 })

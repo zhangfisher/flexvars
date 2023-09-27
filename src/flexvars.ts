@@ -1,23 +1,10 @@
 import { getByPath } from "flex-tools";
 import { assignObject } from "flex-tools/object/assignObject";
 import { isPlainObject } from "flex-tools/typecheck/isPlainObject";
-import {  FlexFilter } from "./filter";
-import { executeFilters, forEachInterpolatedVars, FlexVariableContext } from './parser'; 
+import { executeFilters, forEachInterpolatedVars  } from './parser'; 
 import { defaultEmptyFilter, defaultErrorFilter } from './filters';
+import { FlexFilter,FilterBehaviors, FilterEmptyHandler, FilterErrorHandler } from "./types";
 
-
-
-// 当过滤器执行出错时的处理方式
-export const FilterBehaviors  = {
-    Abort:Symbol('Abort'),
-    Throw:Symbol('Throw'),
-    Ignore:Symbol('Ignore'),
-}
-
-export type FilterBehaviorType = typeof FilterBehaviors[keyof typeof FilterBehaviors]
-
-export type FilterErrorHandler = (this:FlexVars,error:Error,value:any,args:any[],context:FlexVariableContext)=>FilterBehaviorType | string;     
-export type FilterEmptyHandler = (this:FlexVars,value:any,args:any[],context:FlexVariableContext)=>FilterBehaviorType | string 
 
 export interface FlexVarsOptions {
 	debug?: boolean; // 是否启用调试模式,启用后会在控制台输出调试信息
@@ -25,7 +12,7 @@ export interface FlexVarsOptions {
     filters?: Record<string, FlexFilter | FlexFilter['next'] >;                
     // 动态过滤器，当预定义的过滤器列表中没有找到对应的过滤器时，会调用此函数来获取过滤器
 	getFilter?(name: string): FlexFilter | FlexFilter['next'] | null;                   
-	log?(message, ...args: any[]): void;                                // 日志输出函数
+	log?(message:string, ...args: any[]): void;                                // 日志输出函数
     // 当没有对应的插值变量为空时，如何处理?
     // default: 使用空字符代表
     // ignore: 忽略，输出原始{}
@@ -39,7 +26,7 @@ export interface FlexVarsOptions {
     // 可以返回一个字符串用于替换空值，或者返回一个''表示空值
     onEmpty?:FilterEmptyHandler               
     // 判断一个值是否为空值的函数
-    isEmpty?:(value:any)=>boolean;                                      
+    isEmpty?:(value:any)=>boolean;          
 }
 
 export type RequiredFlexVarsOptions = Omit<Required<FlexVarsOptions>,"filters"> & { filters: Record<string, FlexFilter> };
@@ -51,7 +38,7 @@ export class FlexVars {
 		this.options = assignObject(
 			{
 				log: console.log,
-				getFilter: () => (value) => value,
+				getFilter: () => (value:any) => value,
 				filters: {},
                 missing:'default'
 			},
@@ -123,7 +110,7 @@ export class FlexVars {
                 name,
                 priority: 'normal',
                 args:null,
-                next: (value) => value
+                next: (value:any) => value
             },typeof(filter)=='function' ? {filter} : filter) as FlexFilter
             this.options.filters[name] = normalizedFilter
 		});
@@ -161,11 +148,10 @@ export class FlexVars {
 			// 读取模板字符串中的插值变量列表
 			// [[var1,[filter,filter,...],match],[var2,[filter,filter,...],match],...}
 			let varValues = args[0];
-			return forEachInterpolatedVars(template,(name: string, filters, match) => {
+			return forEachInterpolatedVars.call(this,template,(name: string, prefix, suffix, filters, match) => {
 					let value = name in varValues ? varValues[name] : this.getMissingValue(name,match);
                     if(typeof(value)=='function') value = value.call(this)
-                    if(filters.length==0) return value               
-					return String(executeFilters.call(this, filters,{name,value,template,match}));
+					return executeFilters.call(this, filters,{name,value,prefix, suffix,template,match});
 				}
 			);
 		} else {
@@ -174,11 +160,10 @@ export class FlexVars {
 			const params = args.length === 1 && Array.isArray(args[0]) ? [...args[0]] : args;                        
 			//if (params.length === 0) return template; // 没有变量则不需要进行插值处理，返回原字符串
 			let i = 0;
-			return forEachInterpolatedVars(template,(name, filters, match) => {
+			return forEachInterpolatedVars.call(this,template,(name, prefix, suffix,filters, match) => {
                     let value = params.length > i ? (params[i++]) : this.getMissingValue(i,match)
                     if(typeof(value)=='function') value = value.call(this)     
-                    if(filters.length==0) return value               
-					return String(executeFilters.call(this,filters,{name,value,template,match}));
+					return executeFilters.call(this,filters,{name,value,prefix, suffix,template,match});
 				},{ replaceAll: false }
 			);
 		}
@@ -188,7 +173,7 @@ export class FlexVars {
      * @param message 
      * @param args 
      */
-    log(message, ...args: any[]): void {
+    log(message:string, ...args: any[]): void {
         if(!this.options.debug) return
         this.options.log(message,...args)
     }
