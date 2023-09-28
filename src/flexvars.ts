@@ -38,7 +38,6 @@ export class FlexVars {
 		this.options = assignObject(
 			{
 				log: console.log,
-				getFilter: () => (value:any) => value,
 				filters: {},
                 missing:'default',
                 config:{}
@@ -82,11 +81,16 @@ export class FlexVars {
         if(name in this.options.filters){
             return this.options.filters[name]
         }else{
-            let r =  this.options.getFilter.call(this,name)
+            let r =  this.options.getFilter?.call(this,name)
             if(typeof(r)=='function'){
                 return {name,next:r}
             }else if(name in String.prototype){
-                return {name,next:(value,args,context)=>String.prototype[name]}
+                return {
+                    name,
+                    next:(value,args,context)=>{
+                        return (value as any)[name](...context.args)
+                    }
+                }
             }else{
                 return r
             }

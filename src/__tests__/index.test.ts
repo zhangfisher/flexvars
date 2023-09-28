@@ -477,7 +477,7 @@ describe("过滤器", () => {
     test("调用原型方法进行过滤", () => {      
         expect(flexvars.replace("{ | toUpperCase }","flexvars")).toBe("FLEXVARS")
         expect(flexvars.replace("{ | toLowerCase }","flexvars")).toBe("flexvars")
-        expect(flexvars.replace("{ | slice(5) | toUpperCase  }","flexvars")).toBe("VARS")
+        expect(flexvars.replace("{ | slice(4) | toUpperCase  }","flexvars")).toBe("VARS")
     })
 })
  

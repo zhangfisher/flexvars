@@ -362,7 +362,8 @@ function wrapperFilter(this:FlexVars,filter:FlexFilter,args:any[], context:FlexV
         let result:any 
         // 同一个变量的过滤器器共享同一个上下文，除了getConfig不一样外
         let filterContext = Object.assign(context,{
-            getConfig:()=>filter.configKey ? getByPath(this.options.config,filter.configKey) : this.options.config
+            getConfig:()=>filter.configKey ? getByPath(this.options.config,filter.configKey) : this.options.config,
+            args
         }) as FlexFilterContext
         try{
             // 执行过滤器
