@@ -1,8 +1,8 @@
-import { describe,beforeAll,test,beforeEach,expect,vi} from "vitest"
+import { describe,test,beforeEach,expect,vi} from "vitest"
 import {  FlexVars } from '../flexvars';
-import { FlexFilterEmptyError } from "../errors";
+import { FlexFilterEmptyError, FlexFilterAbortError, FlexFilterIgnoreError } from '../errors';
 import { FilterBehaviors, FlexFilterContext } from '../types';
-import { e } from "vitest/dist/reporters-cb94c88b";
+import { assignObject } from "flex-tools/object/assignObject";
 
 
 const AddFilter = {
@@ -171,7 +171,9 @@ describe("过滤器", () => {
             }
         })
         // 默认忽略错误
-        expect(flexvars.replace("{|throw}",0)).toBe("0")        
+        expect(flexvars.replace("{|throw}",0)).toBe("0")    
+        expect(flexvars.replace("{|add|add|throw|add|add}",0)).toBe("4")
+    
         // 抛出错误
         flexvars.options.onError = ()=>FilterBehaviors.Throw 
         expect(()=>flexvars.replace("{|add|add|throw|add|add}",0)).toThrow(MyError)
@@ -181,10 +183,50 @@ describe("过滤器", () => {
         expect(flexvars.replace("{|add|add|throw|add|add}",0)).toBe("2")
         // 忽略或跳过出错的过滤器
         flexvars.options.onError = ()=>FilterBehaviors.Ignore
-        expect(flexvars.replace("{|add|add|throw|add|add}",0)).toBe("4")
-
-
+        expect(flexvars.replace("{|add|add|throw|add|add}",0)).toBe("4") 
     })
+    test("过滤器出错时使用指定值替换并中止",()=>{
+        class MyError extends Error{}
+        const filter =flexvars.addFilter(AddFilter)
+        flexvars.addFilter({
+            name:"throw",
+            next(value,args,context){
+                throw new MyError("出错了")
+            }
+        })
+        // 默认忽略错误
+        flexvars.options.onError = ()=>"8"
+        expect(flexvars.replace("{|add|add|throw|add|add}",0)).toBe("8") 
+    })
+
+    test("过滤器默认出错处理时返回值",()=>{
+        class MyError extends Error{}
+        const filter =flexvars.addFilter(AddFilter)
+        flexvars.addFilter({
+            name:"throw",
+            next(value,args,context){
+                throw new MyError("出错了")
+            }
+        })       
+
+        // 返回个默认值
+        flexvars.options.onError = ()=>{
+            return "999"
+        }
+        expect(flexvars.replace("{|add|add|throw|add}",0)).toBe("999")
+
+        flexvars.options.onError = ()=>{
+            throw new FlexFilterIgnoreError("999")
+        }
+        expect(flexvars.replace("{|add|add|throw|add}",0)).toBe("1000")
+
+        flexvars.options.onError = ()=>{
+            throw new FlexFilterAbortError("999")
+        }
+        expect(flexvars.replace("{|add|add|throw|add}",0)).toBe("999") 
+ 
+    })
+
     test("过滤器指定出错处理逻辑",()=>{
         class MyError extends Error{}
         let fn = vi.fn()
@@ -369,8 +411,6 @@ describe("过滤器", () => {
         expect(()=>flexvars.replace("X{|add|null|add|empty('throw')}",0)).toThrow(FlexFilterEmptyError)
         expect(()=>flexvars.replace("X{|add|empty('throw')|add|null|add}",0)).toThrow(FlexFilterEmptyError)
 
-
-
     })
 
     
@@ -401,17 +441,44 @@ describe("过滤器", () => {
         expect(flexvars.replace("{value|add|dec}",{value:"fisher"})).toBe("fisher")
         expect(fn).toBeCalled()
         expect(fn).toBeCalledTimes(2)
+        flexvars.replace("我每月收入{value 元}",0)
 
     })
-    test("获取动态过滤器ss", () => {         
+    test("可配置过滤器示例", () => {      
+        flexvars.options.config.currency={
+            prefix:"RMB",
+            sign:"￥",
+            suffix:"元"  
+        }
         flexvars.addFilter({
-            name:"add",
-            args:["suffix"],
-            default:{suffix:"!"},
-            next: (value,args) => {
-                    return value + args.suffix;
-                }
-        });
-        expect(flexvars.replace("Hello, {name|add|add|add|add('*')}", { name: 'FlexVars' })).toBe("Hello, FlexVars!!!*")
+            name:"currency",
+            args:["prefix","suffix","sign"],    
+            // 指定该过滤器的配置数据在config的路径
+            configKey:"currency",            
+            next(value:any,args:Record<string,any>,context:FlexFilterContext){
+                // 获取配置数据
+                const cfgs = context.getConfig() 
+                // 优先使用参数值，其次使用配置值
+                args = assignObject(cfgs,args)
+                return `${args.prefix}${args.sign}${value}${args.suffix}`
+            }
+        })
+        expect(flexvars.replace("{ value | currency}",100)).toBe("RMB￥100元")
+        // 传入参数值，优先级更高
+        expect(flexvars.replace("{ value | currency('人民币')}",100)).toBe("人民币￥100元")
+        flexvars.options.config.currency={
+            prefix:"USD",
+            sign:"$",
+            suffix:""  
+        }
+        expect(flexvars.replace("{ value | currency}",100)).toBe("USD$100")
+
+    })
+    test("调用原型方法进行过滤", () => {      
+        expect(flexvars.replace("{ | toUpperCase }","flexvars")).toBe("FLEXVARS")
+        expect(flexvars.replace("{ | toLowerCase }","flexvars")).toBe("flexvars")
+        expect(flexvars.replace("{ | slice(5) | toUpperCase  }","flexvars")).toBe("VARS")
     })
 })
+ 
+

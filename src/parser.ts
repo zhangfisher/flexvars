@@ -275,11 +275,11 @@ export function executeFilters(this:FlexVars, filterDefines:FilterInputChain, co
             }        
         }
     }     
-    if(value !=''){
+    if(!this.options.isEmpty(value)){
         value = `${context.prefix}${value}${context.suffix}`
     }
      return value;
- }
+}
 
 
 /**
@@ -400,7 +400,7 @@ function getSortedFilters(this:FlexVars,filterDefines:FilterInputChain) : ([Flex
     const afterFilters:FilterInfos = []
     let filters =filterDefines.map(([name,args])=>[this.getFilter.call(this,name),args])// 找出有效的过滤器
     .filter(([filter])=>filter!= null) as FilterInfos    
-    // 过滤无效的过滤器
+    // 过滤无效的过滤器并排序
     filters = filters.reduce<FilterInfos>((prev:FilterInfos,[filter,args])=>{            // 处理优先级排序
         if(filter){
             if(filter.priority=='before'){

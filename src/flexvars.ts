@@ -40,7 +40,8 @@ export class FlexVars {
 				log: console.log,
 				getFilter: () => (value:any) => value,
 				filters: {},
-                missing:'default'
+                missing:'default',
+                config:{}
 			},
 			options
 		);
@@ -56,7 +57,7 @@ export class FlexVars {
     private addDefaultHandlers(){
         this.options.onError = (error,value,args,context)=>FilterBehaviors.Ignore
         this.options.onEmpty = (value,args,context)=>''
-        this.options.isEmpty = (value)=>value===null  
+        this.options.isEmpty = (value)=>value===null  || value ===''
     }
     /**
      * 增加一个过滤器
@@ -66,7 +67,7 @@ export class FlexVars {
         if(!filter.name) throw new Error("Filter name cannot be empty")
         if(typeof(filter.next)!=="function")  throw new Error("The filter must provide a next function")
         filter = assignObject({            
-            priority:'normal'
+            priority:'normal' 
         },filter)
         return this.filters[filter.name!]= filter
     }
@@ -84,6 +85,8 @@ export class FlexVars {
             let r =  this.options.getFilter.call(this,name)
             if(typeof(r)=='function'){
                 return {name,next:r}
+            }else if(name in String.prototype){
+                return {name,next:(value,args,context)=>String.prototype[name]}
             }else{
                 return r
             }

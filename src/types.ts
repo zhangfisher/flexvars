@@ -31,6 +31,7 @@ export interface FlexVariableContext {
 }
 
 export interface FlexFilterContext extends FlexVariableContext{
+    args:any[],                         // 当前过滤器的参数列表
     getConfig:()=>Record<string,any>    // 指定过滤器的配置参数
 }
 

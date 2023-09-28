@@ -85,3 +85,5 @@ console.log(flexvars.replace("Location: {module= module }{,func= function }{,lin
 ```
 
 - 当变量是空值时，前缀和后缀不会被输出。
+
+
