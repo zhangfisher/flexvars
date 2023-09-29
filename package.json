@@ -9,7 +9,8 @@
     "docs:dev":"docsify serve docs",
     "test": "vitest --",
     "test:coverage": "vitest --coverage",
-    "build": "tsup"
+    "build": "tsup",
+    "release": "tsup && npm version patch && npm publish"
   },
   "keywords": [],
   "author": "",
