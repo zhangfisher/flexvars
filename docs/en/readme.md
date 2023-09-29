@@ -7,12 +7,12 @@ Powerful string interpolation tool library
 
 ## Features
 
--Supports positional and dictionary interpolation
--Supports multiple error handling mechanisms
--Support for null value processing mechanism
--Support filter chain processing of input variable values
--Support variable prefix suffix
--98%+unit test coverage
+- Supports both positional interpolation and dictionary interpolation
+- Multiple error handling mechanisms
+- Handling mechanism for null values
+- Supports chaining processing of input variable values using filters
+- Supports variable prefix and suffix
+- Over 98% unit test coverage
 
 ## Getting Started
 

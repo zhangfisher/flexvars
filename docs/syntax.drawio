@@ -1,0 +1,108 @@
+<mxfile host="65bd71144e">
+    <diagram id="Dzdjhvi5WSoILFl1oSpS" name="CN">
+        <mxGraphModel dx="1393" dy="1497" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="{&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;lt;&lt;/font&gt;&lt;font color=&quot;#1c8307&quot; style=&quot;font-size: 22px;&quot;&gt;Prefix&lt;/font&gt;&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;gt;&lt;/font&gt;&lt;font color=&quot;#1c8307&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;nbsp; &amp;nbsp;&lt;/font&gt;&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;lt;&lt;/font&gt;name&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;gt;&lt;/font&gt;&lt;font color=&quot;#00cccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;nbsp;| &lt;/font&gt;&lt;font color=&quot;#007fff&quot; style=&quot;font-size: 22px;&quot;&gt;filter&lt;/font&gt;&lt;font color=&quot;#00cccc&quot; style=&quot;font-size: 22px;&quot;&gt; | &lt;/font&gt;&lt;font color=&quot;#007fff&quot; style=&quot;font-size: 22px;&quot;&gt;filter(&lt;/font&gt;&lt;font color=&quot;#999999&quot; style=&quot;font-size: 22px;&quot;&gt;arg1,arg2,...&lt;/font&gt;&lt;font color=&quot;#007fff&quot; style=&quot;font-size: 22px;&quot;&gt;)&lt;/font&gt;&lt;font color=&quot;#00cccc&quot; style=&quot;font-size: 22px;&quot;&gt; | &lt;/font&gt;&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;.....&lt;/font&gt;&lt;font color=&quot;#1c8307&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;nbsp; &amp;nbsp;&lt;/font&gt;&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;lt;&lt;/font&gt;&lt;font color=&quot;#1c8307&quot; style=&quot;font-size: 22px;&quot;&gt;Suffix&lt;/font&gt;&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;gt;&lt;/font&gt;}" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontColor=#FF0000;fontSize=22;" vertex="1" parent="1">
+                    <mxGeometry x="22" y="73.25" width="749" height="105" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=-90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="116.75" y="125.5" width="20" height="77.5" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="" style="shape=partialRectangle;whiteSpace=wrap;html=1;bottom=1;right=1;left=1;top=0;fillColor=none;routingCenterX=-0.5;strokeColor=#999999;fontFamily=Garamond;fontSize=22;fontColor=#999999;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="174" y="133.25" width="18" height="6" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="" style="shape=partialRectangle;whiteSpace=wrap;html=1;bottom=1;right=1;left=1;top=0;fillColor=none;routingCenterX=-0.5;strokeColor=#999999;fontFamily=Garamond;fontSize=22;fontColor=#999999;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="602" y="133.25" width="20" height="6" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=-90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="230.13" y="124.38" width="20" height="79.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=-90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="434.63" y="12.630000000000003" width="20" height="300.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=-90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="656.38" y="126.13" width="20" height="76.25" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;前缀&lt;br&gt;&lt;/font&gt;&lt;font color=&quot;#999999&quot;&gt;可选&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=14;fontColor=#CC0000;" vertex="1" parent="1">
+                    <mxGeometry x="101.5" y="178.25" width="60" height="46.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;变量名称&lt;br&gt;&lt;/font&gt;&lt;font color=&quot;#999999&quot;&gt;可选&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=14;fontColor=#CC0000;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="178.25" width="75" height="49.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;过滤器链式调用&lt;br&gt;&lt;/font&gt;&lt;font color=&quot;#999999&quot;&gt;可选,0-N&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=14;fontColor=#CC0000;" vertex="1" parent="1">
+                    <mxGeometry x="381.38" y="178.25" width="120.75" height="49" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;后缀&lt;br&gt;&lt;/font&gt;&lt;font color=&quot;#999999&quot;&gt;可选&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=14;fontColor=#CC0000;" vertex="1" parent="1">
+                    <mxGeometry x="626" y="178.25" width="60" height="46" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="318.5" y="63.75" width="20" height="52.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="452.75" width="20" height="180.25" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="&lt;div style=&quot;font-size: 15px;&quot;&gt;无参数&lt;/div&gt;&lt;div style=&quot;font-size: 15px;&quot;&gt;过滤器调用&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=15;fontColor=#CC0000;fontStyle=0" vertex="1" parent="1">
+                    <mxGeometry x="276" y="34.25" width="105" height="41" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="&lt;div style=&quot;font-size: 15px;&quot;&gt;带参数&lt;/div&gt;&lt;div style=&quot;font-size: 15px;&quot;&gt;过滤器调用&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=15;fontColor=#CC0000;fontStyle=0" vertex="1" parent="1">
+                    <mxGeometry x="412" y="34.25" width="105" height="41" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="8uxRsjF9t-ocY-XBYork" name="EN">
+        <mxGraphModel dx="1393" dy="1497" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-1" value="{&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;lt;&lt;/font&gt;&lt;font color=&quot;#1c8307&quot; style=&quot;font-size: 22px;&quot;&gt;Prefix&lt;/font&gt;&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;gt;&lt;/font&gt;&lt;font color=&quot;#1c8307&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;nbsp; &amp;nbsp;&lt;/font&gt;&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;lt;&lt;/font&gt;name&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;gt;&lt;/font&gt;&lt;font color=&quot;#00cccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;nbsp;| &lt;/font&gt;&lt;font color=&quot;#007fff&quot; style=&quot;font-size: 22px;&quot;&gt;filter&lt;/font&gt;&lt;font color=&quot;#00cccc&quot; style=&quot;font-size: 22px;&quot;&gt; | &lt;/font&gt;&lt;font color=&quot;#007fff&quot; style=&quot;font-size: 22px;&quot;&gt;filter(&lt;/font&gt;&lt;font color=&quot;#999999&quot; style=&quot;font-size: 22px;&quot;&gt;arg1,arg2,...&lt;/font&gt;&lt;font color=&quot;#007fff&quot; style=&quot;font-size: 22px;&quot;&gt;)&lt;/font&gt;&lt;font color=&quot;#00cccc&quot; style=&quot;font-size: 22px;&quot;&gt; | &lt;/font&gt;&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;.....&lt;/font&gt;&lt;font color=&quot;#1c8307&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;nbsp; &amp;nbsp;&lt;/font&gt;&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;lt;&lt;/font&gt;&lt;font color=&quot;#1c8307&quot; style=&quot;font-size: 22px;&quot;&gt;Suffix&lt;/font&gt;&lt;font color=&quot;#cccccc&quot; style=&quot;font-size: 22px;&quot;&gt;&amp;gt;&lt;/font&gt;}" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontColor=#FF0000;fontSize=22;" vertex="1" parent="1">
+                    <mxGeometry x="24" y="57.25" width="749" height="105" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-2" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=-90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="118.75" y="109.5" width="20" height="77.5" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-3" value="" style="shape=partialRectangle;whiteSpace=wrap;html=1;bottom=1;right=1;left=1;top=0;fillColor=none;routingCenterX=-0.5;strokeColor=#999999;fontFamily=Garamond;fontSize=22;fontColor=#999999;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="176" y="117.25" width="18" height="6" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-4" value="" style="shape=partialRectangle;whiteSpace=wrap;html=1;bottom=1;right=1;left=1;top=0;fillColor=none;routingCenterX=-0.5;strokeColor=#999999;fontFamily=Garamond;fontSize=22;fontColor=#999999;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="604" y="117.25" width="20" height="6" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-5" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=-90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="232.13" y="108.38" width="20" height="79.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-6" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=-90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="436.63" y="-3.3700000000000045" width="20" height="300.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-7" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=-90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="658.38" y="110.13" width="20" height="76.25" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-8" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;Prefix&lt;br&gt;&lt;/font&gt;&lt;span style=&quot;color: rgb(153, 153, 153);&quot;&gt;Optional&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=14;fontColor=#CC0000;" vertex="1" parent="1">
+                    <mxGeometry x="103.5" y="162.25" width="60" height="46.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-9" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;Variable name&lt;br&gt;&lt;/font&gt;&lt;font color=&quot;#999999&quot;&gt;Optional&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=14;fontColor=#CC0000;" vertex="1" parent="1">
+                    <mxGeometry x="202" y="162.25" width="75" height="49.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-10" value="&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;font-size: 16px;&quot;&gt;Chain Call Filters&lt;/span&gt;&lt;/div&gt;&lt;font color=&quot;#999999&quot;&gt;Optional,0-N&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=14;fontColor=#CC0000;" vertex="1" parent="1">
+                    <mxGeometry x="363" y="162.25" width="141.13" height="49" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-11" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;Suffix&lt;br&gt;&lt;/font&gt;&lt;span style=&quot;color: rgb(153, 153, 153);&quot;&gt;Optional&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=14;fontColor=#CC0000;" vertex="1" parent="1">
+                    <mxGeometry x="642.38" y="162.25" width="60" height="46" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-12" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="320.5" y="47.75" width="20" height="52.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-13" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;fontFamily=Garamond;fontSize=22;fontColor=#999999;rotation=90;strokeColor=#999999;" vertex="1" parent="1">
+                    <mxGeometry x="454.75" y="-16" width="20" height="180.25" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-14" value="&lt;div style=&quot;font-size: 15px;&quot;&gt;&lt;div&gt;call without&amp;nbsp; args&amp;nbsp;&lt;/div&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=15;fontColor=#CC0000;fontStyle=0" vertex="1" parent="1">
+                    <mxGeometry x="278" y="18.25" width="105" height="41" as="geometry"/>
+                </mxCell>
+                <mxCell id="DELYy9fQaxuiyKnU9Hmz-15" value="&lt;div style=&quot;font-size: 15px;&quot;&gt;&lt;div&gt;call with args&lt;/div&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Garamond;fontSize=15;fontColor=#CC0000;fontStyle=0" vertex="1" parent="1">
+                    <mxGeometry x="414" y="18.25" width="105" height="41" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
