@@ -2,8 +2,8 @@
 
 Powerful string interpolation tool library
 
-[中文](https://zhangfisher.github.io/flexvars/#/cn/)
-[English](https://zhangfisher.github.io/flexvars/#/en/)
+[中文](https://zhangfisher.github.io/flexvars/#/cn/readme)
+[English](https://zhangfisher.github.io/flexvars/#/en/readme)
 
 ## Features
 
