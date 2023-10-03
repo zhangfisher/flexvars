@@ -10,7 +10,7 @@
     "test": "vitest --",
     "test:coverage": "vitest --coverage",
     "build": "tsup",
-    "release": "tsup && npm version patch && npm publish"
+    "release": "pnpm build && pnpm test && npm version patch && npm publish"
   },
   "keywords": [],
   "author": "",
