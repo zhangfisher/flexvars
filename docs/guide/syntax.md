@@ -16,7 +16,6 @@
 "I am {name}, I am {age} years old."  
 // 使用了过滤器
 "I am {name | upper }, I am {age} years old."  
-
 ```
 
 ## 匿名变量
