@@ -1,29 +1,24 @@
-# 快速入门
+# 快速开始
 
 ## 第1步. 安装
 
 
-<!-- tabs:start -->
+::: code-group 
 
-#### **pnpm**
-
-```bash
+```bash [pnpm]
 pnpm add flexvars 
 ```
 
-#### **yarn**
-
-```bash 
+```bash [yarn] 
 yarn add flexvars 
 ```
 
-#### **npm**
 
-```bash 
+```bash [npm]
 npm install flexvars
 ```
 
-<!-- tabs:end -->
+:::
 
 ## 第2步. 初始化库
 
