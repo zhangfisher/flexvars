@@ -1,4 +1,3 @@
-import { getByPath } from "flex-tools";
 import { assignObject } from "flex-tools/object/assignObject";
 import { isPlainObject } from "flex-tools/typecheck/isPlainObject";
 import { executeFilters, forEachInterpolatedVars  } from './parser'; 
