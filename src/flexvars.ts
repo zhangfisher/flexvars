@@ -28,7 +28,7 @@ export interface FlexVarsOptions {
     isEmpty?:(value:any)=>boolean;          
 }
 
-export type RequiredFlexVarsOptions = Omit<Required<FlexVarsOptions>,"filters"> & { filters: Record<string, FlexFilter> };
+export type RequiredFlexVarsOptions = Omit<Required<FlexVarsOptions>,"filters"> & { filters: Record<string, FlexFilter<any>> };
 
 
 export class FlexVars {
@@ -61,13 +61,13 @@ export class FlexVars {
      * 增加一个过滤器
      * @param filter   过滤器声明数据
      */
-    addFilter(filter:FlexFilter){
+    addFilter<Args extends Record<string,any>>(filter:FlexFilter<Args>){
         if(!filter.name) throw new Error("Filter name cannot be empty")
         if(typeof(filter.next)!=="function")  throw new Error("The filter must provide a next function")
         filter = assignObject({            
             priority:'normal' 
         },filter)
-        return this.filters[filter.name!]= filter
+        return this.filters[filter.name!]= filter as FlexFilter<Args>
     }
     /**
      * 移除过滤器
@@ -76,7 +76,7 @@ export class FlexVars {
     removeFilter(name:string){    
         delete this.filters[name] 
     }
-    getFilter(name: string): FlexFilter | null {
+    getFilter<Args extends Record<string,any>>(name: string): FlexFilter<Args> | null {
         if(name in this.options.filters){
             return this.options.filters[name]
         }else{
@@ -91,7 +91,7 @@ export class FlexVars {
                     }
                 }
             }else{
-                return r
+                return r as FlexFilter<Args>
             }
         }
     }
@@ -183,3 +183,5 @@ export class FlexVars {
         this.options.log(message,...args)
     }
 }
+
+ 

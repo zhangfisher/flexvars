@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       flex-tools:
-        specifier: ^1.3.35
-        version: 1.3.35
+        specifier: ^1.4.13
+        version: 1.4.13
     devDependencies:
       '@changesets/cli':
         specifier: ^2.27.10
@@ -1126,8 +1126,8 @@ packages:
     resolution: {integrity: sha512-PpOwAdQ/YlXQ2vj8a3h8IipDuYRi3wceVQQGYWxNINccq40Anw7BlsEXCMbt1Zt+OLA6Fq9suIpIWD0OsnISlw==}
     engines: {node: '>=8'}
 
-  flex-tools@1.3.35:
-    resolution: {integrity: sha512-bxl/+iXAp1nL2GWQwwU4wdkaHjsb0z0nH7IzKsuHrlfJfYlx7sK3jeSLxqh1Lc40gY/pz6K8gXm/VDN/NkvtcA==}
+  flex-tools@1.4.13:
+    resolution: {integrity: sha512-20k6WJ8qnQ2IkIwgctj1MfhA8euPF3V1WdCnEGOiiVgdV/ejm5fYBYwqM90UL13itZB6tv839PSrGRUsDSrcVQ==}
 
   focus-trap@7.6.2:
     resolution: {integrity: sha512-9FhUxK1hVju2+AiQIDJ5Dd//9R2n2RAfJ0qfhF4IHGHgcoEUTMpbTeG/zbEuwaiYXfuAH6XE0/aCyxDdRM+W5w==}
@@ -3178,7 +3178,7 @@ snapshots:
       locate-path: 5.0.0
       path-exists: 4.0.0
 
-  flex-tools@1.3.35:
+  flex-tools@1.4.13:
     dependencies:
       art-template: 4.13.2
       glob: 10.3.4
