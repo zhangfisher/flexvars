@@ -1,7 +1,7 @@
 import { describe,test,beforeEach,expect,vi} from "vitest"
 import {  FlexVars } from '../flexvars';
 import { FlexFilterEmptyError, FlexFilterAbortError, FlexFilterIgnoreError } from '../errors';
-import { FilterBehaviors, FlexFilterContext } from '../types';
+import { FilterBehaviors, FlexFilter, FlexFilterContext } from '../types';
 import { assignObject } from "flex-tools/object/assignObject";
 
 
@@ -9,10 +9,10 @@ const AddFilter = {
     name:"add",
     args:["step"],
     default:{step:1},
-    next(value:any,args:Record<string,any>,context:FlexFilterContext){
+    next(value,args,context){
         return parseInt(value)+args.step
     }
-}
+} 
 // 返回空值的过滤器
 const NullFilter =  {
     name:"null",
@@ -24,7 +24,9 @@ const NullFilter =  {
 describe("基本的变量插值功能", () => {
     let flexvars:FlexVars  
     beforeEach(() => {
-        flexvars = new FlexVars()
+        flexvars = new FlexVars<{
+            count:1
+        }>()
     })
 
     test("位置变量插值", () => {        
@@ -109,9 +111,13 @@ describe("基本的变量插值功能", () => {
 
 
 describe("过滤器", () => {
-    let flexvars:FlexVars  
+    let flexvars:FlexVars<{
+        count:number
+    }>
     beforeEach(() => {
-        flexvars = new FlexVars()
+        flexvars = new FlexVars<{
+            count:number
+        }>()
     })
     
     test("过滤器基础调用方式",()=>{
@@ -122,6 +128,7 @@ describe("过滤器", () => {
             next(value,args,context){
                 if(args.upper) value = value.toUpperCase()
                 return `${args.prefix}${value}${args.suffix}`
+                context.count
             }
         })
         // 不传参
@@ -455,7 +462,7 @@ describe("过滤器", () => {
             args:["prefix","suffix","sign"],    
             // 指定该过滤器的配置数据在config的路径
             configKey:"currency",            
-            next(value:any,args:Record<string,any>,context:FlexFilterContext){
+            next(value:any,args,context){
                 // 获取配置数据
                 const cfgs = context.getConfig() 
                 // 优先使用参数值，其次使用配置值
