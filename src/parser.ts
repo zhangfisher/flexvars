@@ -44,7 +44,7 @@ import { escapeRegexpStr } from "./utils"
 import { isNumber } from "flex-tools/typecheck/isNumber"
 import { safeParseJson } from "flex-tools/object/safeParseJson"
 import { addTagHelperFlags, removeTagHelperFlags } from "./tagHelper"
-import { FilterBehaviors,  FlexVariableContext, FlexFilter, FlexFilterContext } from "./types";
+import { FilterBehaviors,  FlexFilter, FlexFilterContext } from "./types";
 
 
 /**
@@ -248,7 +248,7 @@ export function forEachInterpolatedVars(this:FlexVars, str:string, replacer: (na
   * @param {{value,name,template,match}}   
   * 
   */ 
-export function executeFilters(this:FlexVars, filterDefines:FilterInputChain, context:FlexVariableContext) {
+export function executeFilters(this:FlexVars, filterDefines:FilterInputChain, context:FlexFilterContext) {
     let value = context.value
     if (filterDefines.length > 0){
         // 1. 返回过滤器函数数组处理器
@@ -337,10 +337,10 @@ function executeErrorHandler(this:FlexVars,error:Error,value:any,args:Record<str
  * @param args      传入的参数
  * @param nex    过滤器处理函数
  */
-function wrapperFilter(this:FlexVars, filter:FlexFilter, args:any[], context:FlexVariableContext){
+function wrapperFilter(this:FlexVars, filter:FlexFilter, args:any[], context:FlexFilterContext){
     
     // 1. 处理参数
-    let finalArgs:Record<string,any> = typeof(filter.default) === 'function' ? filter.default() : filter.default    
+    const finalArgs:Record<string,any> = Object.assign({},typeof(filter.default) === 'function' ? filter.default() : filter.default )
 
     if(args.length==1 && isPlainObject(args[0])){   // 采用字典传参数方式
         assignObject(finalArgs,args[0])
@@ -354,16 +354,13 @@ function wrapperFilter(this:FlexVars, filter:FlexFilter, args:any[], context:Fle
     }
     // 
     return (value:any)=>{
-        let result:any 
-        // 同一个变量的过滤器器共享同一个上下文，除了getConfig不一样外
-        let filterContext = Object.assign(context,{
-            args
-        }) as FlexFilterContext
+        let result:any  
         try{
+            context.args = args
             // 执行过滤器
-            result = filter.next.call(this,value,finalArgs,filterContext)
+            result = filter.next.call(this,value,finalArgs,context)
             // 执行空值处理函数
-            result = checkEmptyValue.call(this,result,finalArgs,filter,filterContext) 
+            result = checkEmptyValue.call(this,result,finalArgs,filter,context) 
         }catch(e:any){
             e.filter = filter.name;    
             if(e instanceof FlexFilterError) {
@@ -371,7 +368,7 @@ function wrapperFilter(this:FlexVars, filter:FlexFilter, args:any[], context:Fle
             }else{ 
                 this.log(`当执行过滤器器<${context.match}:${filter.name}>时出错:${e.stack}`)
             }
-            return executeErrorHandler.call(this,e,value,finalArgs,filter,filterContext)
+            return executeErrorHandler.call(this,e,value,finalArgs,filter,context)
         }
         return result
     }
@@ -431,7 +428,7 @@ function getSortedFilters(this:FlexVars,filterDefines:FilterInputChain) : ([Flex
   * @returns {Array}   [(v)=>{...},(v)=>{...},(v)=>{...}]
   *
   */
- function getFilterHandlers(this:FlexVars,filterDefines:FilterInputChain,context:FlexVariableContext) {
+ function getFilterHandlers(this:FlexVars,filterDefines:FilterInputChain,context:FlexFilterContext) {
     
     const filters:([FlexFilter,any[]])[] = getSortedFilters.call(this,filterDefines)
     const filderHandlers:any[]=[]  

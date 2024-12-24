@@ -31,7 +31,7 @@ export const defaultErrorFilter = {
     next(value,args,context){
         const operate = args.operate.toLowerCase()
         const inputValue = args.value
-        context.onError = (error:Error,value:any,args:Record<string,any>,context:FlexFilterContext)=>{
+        context.onError = (error:Error,value:any,_1:Record<string,any>,_2:FlexFilterContext)=>{
             if(!(error instanceof Error))  throw error
             if(error instanceof FlexFilterError) throw error
             if(operate=='throw'){

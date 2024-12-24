@@ -7,37 +7,29 @@ export const FilterBehaviors  = {
     Throw:Symbol('Throw'),
     Ignore:Symbol('Ignore'),
 }
-
-export type FilterBehaviorType = typeof FilterBehaviors[keyof typeof FilterBehaviors]
-
-export type FilterErrorHandler = (this:FlexVars,error:Error,value:any,args:Record<string,any>,context:FlexVariableContext)=>FilterBehaviorType | string;     
-export type FilterEmptyHandler = (this:FlexVars,value:any,args:Record<string,any>,context:FlexVariableContext)=>FilterBehaviorType | string 
-
-
-
-export type FilexFilterErrorBehavior = 'throw' | 'ignore' | 'break' 
-/**
- * 当前插值变量过滤器的上下文对象，用来传递给过滤器函数
- */
-export interface FlexVariableContext<Args extends Record<string,any> = Record<string,any>>{
-    name     : string,                           // 插企过滤器器名称
+ 
+export interface FlexFilterContext {
+    name     : string,                           // 过滤器器名称
     value    : any                               // 当前变量的输入值
     template : string,                           // 当前模板字符串，即整个字符串
     match    : string,                           // 当前匹配到的变量原始字符串  
     prefix   : string,                           // 当前变量的前缀
     suffix   : string,                           // 当前变量的后缀    
-    onError? : (this:FlexVars,error:Error,value:any,args:Record<string,any>,context:FlexFilterContext<Args>)=>FilterBehaviorType | Error | string;     
-    onEmpty? : (this:FlexVars,value:any,args:Record<string,any>,context:FlexFilterContext<Args>)=>FilterBehaviorType  | Error | string ;
+    onError? : (this:FlexVars,error:Error,value:any,args:Record<string,any>,context:FlexFilterContext)=>FilterBehaviorType | Error | string;     
+    onEmpty? : (this:FlexVars,value:any,args:Record<string,any>,context:FlexFilterContext)=>FilterBehaviorType  | Error | string ;
+    args     : any[]
 } 
 
-export interface FlexFilterContext<Args extends Record<string,any> = Record<string,any>> extends FlexVariableContext<Args>{
-    args      : any[],               // 当前过滤器的参数列表
-}
+export type FilterBehaviorType = typeof FilterBehaviors[keyof typeof FilterBehaviors]
+
+export type FilterErrorHandler = (this:FlexVars,error:Error,value:any,args:Record<string,any>,context:FlexFilterContext)=>FilterBehaviorType | string;     
+export type FilterEmptyHandler = (this:FlexVars,value:any,args:Record<string,any>,context:FlexFilterContext)=>FilterBehaviorType | string 
 
 
-export interface FlexFilter<
-    Args extends Record<string,any> = Record<string,any>
->{
+
+export type FilexFilterErrorBehavior = 'throw' | 'ignore' | 'break' 
+
+export interface FlexFilter<Args extends Record<string,any> = Record<string,any>>{
     name?      : string
     // 过滤器执行优先级
     // normal：普通过滤器，按照声明顺序执行
@@ -49,7 +41,7 @@ export interface FlexFilter<
     // 可选的，声明参数顺序，如果是变参的，则需要传入null
     args?: (keyof Args)[] | null 
     // 过滤处理函数，用来实现过滤器的具体逻辑
-    next       : (value:any,args:Args,context:FlexFilterContext<Args>)=>string | null | undefined  
+    next       : (value:any,args:Args,context:FlexFilterContext)=>string | null | undefined  
     // 当执行过滤器时出错时的处理函数, BREAK:中止后续过滤器执行, THROW:抛出异常, IGNORE:忽略继续执行后续过滤器
     onError?   : FilterErrorHandler
     // 当过滤器执行返回空值时的处理函数,空值是指null,undefined 

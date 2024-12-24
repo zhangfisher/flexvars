@@ -1,13 +1,12 @@
 import { describe,test,beforeEach,expect,vi} from "vitest"
 import {  FlexVars } from '../flexvars';
 import { FlexFilterEmptyError, FlexFilterAbortError, FlexFilterIgnoreError } from '../errors';
-import { FilterBehaviors, FlexFilter, FlexFilterContext } from '../types';
-import { assignObject } from "flex-tools/object/assignObject";
+import { FilterBehaviors, FlexFilter, FlexFilterContext } from '../types'; 
 
 
 const AddFilter = {
     name:"add",
-    args:["step"],
+    args:["step"] as const,
     default:{step:1},
     next(value,args,context){
         return parseInt(value)+args.step
@@ -122,8 +121,7 @@ describe("过滤器", () => {
             default:{prefix:"",suffix:"",upper:false},
             next(value,args,context){
                 if(args.upper) value = value.toUpperCase()
-                return `${args.prefix}${value}${args.suffix}`
-                context.count
+                return `${args.prefix}${value}${args.suffix}` 
             }
         })
         // 不传参
@@ -452,7 +450,7 @@ describe("过滤器", () => {
             name:"currency",
             args:["prefix","suffix","sign"],    
             // 指定该过滤器的配置数据在config的路径
-            getConfig:()=>{
+            default:()=>{
                 return  lang==='cn' ? {
                     prefix:"RMB",
                     sign:"￥",
@@ -462,12 +460,8 @@ describe("过滤器", () => {
                     sign:"$",
                     suffix:""  
                 }
-            },           
-            next(value:any,args,context){
-                // 获取配置数据
-                const cfgs = context.getConfig() 
-                // 优先使用参数值，其次使用配置值
-                args = assignObject(cfgs,args)
+            },                       
+            next(value:any,args,context){ 
                 return `${args.prefix}${args.sign}${value}${args.suffix}`
             }
         })

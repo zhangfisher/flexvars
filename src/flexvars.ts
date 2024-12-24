@@ -155,7 +155,7 @@ export class FlexVars{
 			return forEachInterpolatedVars.call(this as any,template,(name: string, prefix, suffix, filters, match) => {
 					let value = name in varValues ? varValues[name] : this.getMissingValue(name,match);
                     if(typeof(value)=='function') value = value.call(this)
-					return executeFilters.call(this as any, filters,{name,value,prefix, suffix,template,match});
+					return executeFilters.call(this as any, filters,{name,value,prefix, suffix,template,match,args:[]});
 				}
 			);
 		} else {
@@ -167,7 +167,7 @@ export class FlexVars{
 			return forEachInterpolatedVars.call(this as any,template,(name, prefix, suffix,filters, match) => {
                     let value = params.length > i ? (params[i++]) : this.getMissingValue(i,match)
                     if(typeof(value)=='function') value = value.call(this)     
-					return executeFilters.call(this as any,filters,{name,value,prefix, suffix,template,match});
+					return executeFilters.call(this as any,filters,{name,value,prefix, suffix,template,match,args:[]});
 				},{ replaceAll: false }
 			);
 		}
