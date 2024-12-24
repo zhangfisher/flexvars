@@ -1,4 +1,3 @@
-import { getByPath } from "flex-tools";
 import { assignObject } from "flex-tools/object/assignObject";
 import { isPlainObject } from "flex-tools/typecheck/isPlainObject";
 import { executeFilters, forEachInterpolatedVars  } from './parser'; 
@@ -54,8 +53,8 @@ export class FlexVars {
      * 增加默认的处理函数
      */
     private addDefaultHandlers(){
-        this.options.onError = (error,value,args,context)=>FilterBehaviors.Ignore
-        this.options.onEmpty = (value,args,context)=>''
+        this.options.onError = ()=>FilterBehaviors.Ignore
+        this.options.onEmpty = ()=>''
         this.options.isEmpty = (value)=>value===null  || value ===''
     }
     /**
