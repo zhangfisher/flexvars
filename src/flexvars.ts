@@ -5,12 +5,12 @@ import { defaultEmptyFilter, defaultErrorFilter } from './filters';
 import { FlexFilter,FilterBehaviors, FilterEmptyHandler, FilterErrorHandler } from "./types";
 
 
-export interface FlexVarsOptions {
+export interface FlexVarsOptions<Ctx extends Record<string, any>> {
 	debug?: boolean; // 是否启用调试模式,启用后会在控制台输出调试信息
 	// 预定义的过滤器列表
     filters?: Record<string, FlexFilter | FlexFilter['next'] >;                
     // 动态过滤器，当预定义的过滤器列表中没有找到对应的过滤器时，会调用此函数来获取过滤器
-	getFilter?(this:FlexVars,name: string): FlexFilter | FlexFilter['next'] | null;                   
+	getFilter?(this:FlexVars<Ctx>,name: string): FlexFilter | FlexFilter['next'] | null;                   
 	log?(message:string, ...args: any[]): void;                                // 日志输出函数
     // 当没有对应的插值变量为空时，如何处理?
     // default: 使用空字符代表
@@ -25,15 +25,19 @@ export interface FlexVarsOptions {
     // 可以返回一个字符串用于替换空值，或者返回一个''表示空值
     onEmpty?:FilterEmptyHandler               
     // 判断一个值是否为空值的函数
-    isEmpty?:(value:any)=>boolean;          
+    isEmpty?:(value:any)=>boolean; 
+    // 用来传递给过滤器的额外的上下文对象
+    context: Ctx;         
 }
 
-export type RequiredFlexVarsOptions = Omit<Required<FlexVarsOptions>,"filters"> & { filters: Record<string, FlexFilter> };
+export type RequiredFlexVarsOptions<Ctx extends Record<string, any> = Record<string, any>> 
+    = Omit<Required<FlexVarsOptions<Ctx>>,"filters"> 
+    & { filters: Record<string, FlexFilter<any,Ctx>> };
 
 
-export class FlexVars {
-	options: RequiredFlexVarsOptions;
-	constructor(options?: FlexVarsOptions) {
+export class FlexVars<Ctx extends Record<string, any> = Record<string, any>> {
+	options: RequiredFlexVarsOptions<Ctx>;
+	constructor(options?: FlexVarsOptions<Ctx>) {
 		this.options = assignObject(
 			{
 				log: console.log,
@@ -61,13 +65,13 @@ export class FlexVars {
      * 增加一个过滤器
      * @param filter   过滤器声明数据
      */
-    addFilter(filter:FlexFilter){
+    addFilter<Args extends Record<string,any>>(filter:FlexFilter<Args,Ctx>){
         if(!filter.name) throw new Error("Filter name cannot be empty")
         if(typeof(filter.next)!=="function")  throw new Error("The filter must provide a next function")
         filter = assignObject({            
             priority:'normal' 
         },filter)
-        return this.filters[filter.name!]= filter
+        return this.filters[filter.name!]= filter as FlexFilter<Args,Ctx>
     }
     /**
      * 移除过滤器
@@ -76,13 +80,13 @@ export class FlexVars {
     removeFilter(name:string){    
         delete this.filters[name] 
     }
-    getFilter(name: string): FlexFilter | null {
+    getFilter<Args extends Record<string,any>>(name: string): FlexFilter<Args,Ctx> | null {
         if(name in this.options.filters){
             return this.options.filters[name]
         }else{
             let r =  this.options.getFilter?.call(this,name)
             if(typeof(r)=='function'){
-                return {name,next:r}
+                return {name,next:r as any}
             }else if(name in String.prototype){
                 return {
                     name,
@@ -91,7 +95,7 @@ export class FlexVars {
                     }
                 }
             }else{
-                return r
+                return r as FlexFilter<Args,Ctx>
             }
         }
     }
@@ -99,8 +103,8 @@ export class FlexVars {
      * 新增内置过滤器
      */
 	private addBuildinFilters() {
-        this.addFilter(defaultErrorFilter)
-        this.addFilter(defaultEmptyFilter)        
+        this.addFilter(defaultErrorFilter as FlexFilter<any,Ctx>)
+        this.addFilter(defaultEmptyFilter as FlexFilter<any,Ctx>)        
     } 
 	/**
 	 * 对传入过滤器进行规范化处理
@@ -116,7 +120,7 @@ export class FlexVars {
                 priority: 'normal',
                 args:null,
                 next: (value:any) => value
-            },typeof(filter)=='function' ? {filter} : filter) as FlexFilter
+            },typeof(filter)=='function' ? {filter} : filter) as FlexFilter<any,Ctx>
             this.options.filters[name] = normalizedFilter
 		});
 	}
@@ -153,10 +157,10 @@ export class FlexVars {
 			// 读取模板字符串中的插值变量列表
 			// [[var1,[filter,filter,...],match],[var2,[filter,filter,...],match],...}
 			let varValues = args[0];
-			return forEachInterpolatedVars.call(this,template,(name: string, prefix, suffix, filters, match) => {
+			return forEachInterpolatedVars.call(this as any,template,(name: string, prefix, suffix, filters, match) => {
 					let value = name in varValues ? varValues[name] : this.getMissingValue(name,match);
                     if(typeof(value)=='function') value = value.call(this)
-					return executeFilters.call(this, filters,{name,value,prefix, suffix,template,match});
+					return executeFilters.call(this as any, filters,{name,value,prefix, suffix,template,match});
 				}
 			);
 		} else {
@@ -165,10 +169,10 @@ export class FlexVars {
 			const params = args.length === 1 && Array.isArray(args[0]) ? [...args[0]] : args;                        
 			//if (params.length === 0) return template; // 没有变量则不需要进行插值处理，返回原字符串
 			let i = 0;
-			return forEachInterpolatedVars.call(this,template,(name, prefix, suffix,filters, match) => {
+			return forEachInterpolatedVars.call(this as any,template,(name, prefix, suffix,filters, match) => {
                     let value = params.length > i ? (params[i++]) : this.getMissingValue(i,match)
                     if(typeof(value)=='function') value = value.call(this)     
-					return executeFilters.call(this,filters,{name,value,prefix, suffix,template,match});
+					return executeFilters.call(this as any,filters,{name,value,prefix, suffix,template,match});
 				},{ replaceAll: false }
 			);
 		}
@@ -183,3 +187,5 @@ export class FlexVars {
         this.options.log(message,...args)
     }
 }
+
+ 

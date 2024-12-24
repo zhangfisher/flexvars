@@ -41,7 +41,7 @@ import { type FlexVars  } from "./flexvars";
 import { replaceAll } from "flex-tools/string/replaceAll";
 import { get as getByPath } from "flex-tools/object/get";
 import { FlexFilterAbortError, FlexFilterIgnoreError,FlexFilterEmptyError, FlexFilterError } from "./errors";
- import { escapeRegexpStr } from "./utils"
+import { escapeRegexpStr } from "./utils"
 import { isNumber } from "flex-tools/typecheck/isNumber"
 import { safeParseJson } from "flex-tools/object/safeParseJson"
 import { addTagHelperFlags, removeTagHelperFlags } from "./tagHelper"

@@ -4,7 +4,7 @@
 
 字符串插值变量使用`{...}`包裹，完整语法如下：
 
-![](../images/syntax.png)
+![](./syntax.png)
 
 
 ## 命名变量
@@ -16,7 +16,6 @@
 "I am {name}, I am {age} years old."  
 // 使用了过滤器
 "I am {name | upper }, I am {age} years old."  
-
 ```
 
 ## 匿名变量
