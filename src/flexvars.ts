@@ -5,45 +5,40 @@ import { defaultEmptyFilter, defaultErrorFilter } from './filters';
 import { FlexFilter,FilterBehaviors, FilterEmptyHandler, FilterErrorHandler } from "./types";
 
 
-export interface FlexVarsOptions<Ctx extends Record<string, any>> {
+export interface FlexVarsOptions {
 	debug?: boolean; // 是否启用调试模式,启用后会在控制台输出调试信息
 	// 预定义的过滤器列表
     filters?: Record<string, FlexFilter | FlexFilter['next'] >;                
     // 动态过滤器，当预定义的过滤器列表中没有找到对应的过滤器时，会调用此函数来获取过滤器
-	getFilter?(this:FlexVars<Ctx>,name: string): FlexFilter | FlexFilter['next'] | null;                   
+	getFilter?(this:FlexVars,name: string): FlexFilter | FlexFilter['next'] | null;                   
 	log?(message:string, ...args: any[]): void;                                // 日志输出函数
     // 当没有对应的插值变量为空时，如何处理?
     // default: 使用空字符代表
     // ignore: 忽略，输出原始{}
     // (name)=>any  自定义函数的返回值替代
-    missing?: 'default' | 'ignore' |  ((nameOrIndex:string|number)=>any) 
-    // 用来保存配置数据,主要用于供过滤器使用，每一个过滤器均可以在配置中读取到
-	config?: Record<string, any>; 
+    missing?: 'default' | 'ignore' |  ((nameOrIndex:string|number)=>any)  
     // 当执行过滤器时出错时的处理函数, BREAK:中止后续过滤器执行, THROW:抛出异常, IGNORE:忽略继续执行后续过滤器
     onError?:FilterErrorHandler
     // 当过滤器执行返回空值时的处理函数,空值是指null,undefined
     // 可以返回一个字符串用于替换空值，或者返回一个''表示空值
     onEmpty?:FilterEmptyHandler               
     // 判断一个值是否为空值的函数
-    isEmpty?:(value:any)=>boolean; 
-    // 用来传递给过滤器的额外的上下文对象
-    context: Ctx;         
+    isEmpty?:(value:any)=>boolean;      
 }
 
-export type RequiredFlexVarsOptions<Ctx extends Record<string, any> = Record<string, any>> 
-    = Omit<Required<FlexVarsOptions<Ctx>>,"filters"> 
-    & { filters: Record<string, FlexFilter<any,Ctx>> };
+export type RequiredFlexVarsOptions = Omit<Required<FlexVarsOptions>,"filters"> & { 
+    filters: Record<string, FlexFilter<any>> 
+};
 
 
-export class FlexVars<Ctx extends Record<string, any> = Record<string, any>> {
-	options: RequiredFlexVarsOptions<Ctx>;
-	constructor(options?: FlexVarsOptions<Ctx>) {
+export class FlexVars{
+	options: RequiredFlexVarsOptions;
+	constructor(options?: FlexVarsOptions) {
 		this.options = assignObject(
 			{
-				log: console.log,
-				filters: {},
-                missing:'default',
-                config:{}
+				log     : console.log,
+				filters : {},
+                missing : 'default' 
 			},
 			options
 		);
@@ -65,13 +60,13 @@ export class FlexVars<Ctx extends Record<string, any> = Record<string, any>> {
      * 增加一个过滤器
      * @param filter   过滤器声明数据
      */
-    addFilter<Args extends Record<string,any>>(filter:FlexFilter<Args,Ctx>){
+    addFilter<Args extends Record<string,any> = Record<string,any>>(filter: FlexFilter<Args>){
         if(!filter.name) throw new Error("Filter name cannot be empty")
         if(typeof(filter.next)!=="function")  throw new Error("The filter must provide a next function")
         filter = assignObject({            
             priority:'normal' 
         },filter)
-        return this.filters[filter.name!]= filter as FlexFilter<Args,Ctx>
+        return this.filters[filter.name!]= filter as FlexFilter<Args>
     }
     /**
      * 移除过滤器
@@ -80,7 +75,7 @@ export class FlexVars<Ctx extends Record<string, any> = Record<string, any>> {
     removeFilter(name:string){    
         delete this.filters[name] 
     }
-    getFilter<Args extends Record<string,any>>(name: string): FlexFilter<Args,Ctx> | null {
+    getFilter<Args extends Record<string,any>>(name: string): FlexFilter<Args> | null {
         if(name in this.options.filters){
             return this.options.filters[name]
         }else{
@@ -95,7 +90,7 @@ export class FlexVars<Ctx extends Record<string, any> = Record<string, any>> {
                     }
                 }
             }else{
-                return r as FlexFilter<Args,Ctx>
+                return r as FlexFilter<Args>
             }
         }
     }
@@ -103,8 +98,8 @@ export class FlexVars<Ctx extends Record<string, any> = Record<string, any>> {
      * 新增内置过滤器
      */
 	private addBuildinFilters() {
-        this.addFilter(defaultErrorFilter as FlexFilter<any,Ctx>)
-        this.addFilter(defaultEmptyFilter as FlexFilter<any,Ctx>)        
+        this.addFilter(defaultErrorFilter)
+        this.addFilter(defaultEmptyFilter)        
     } 
 	/**
 	 * 对传入过滤器进行规范化处理
@@ -120,7 +115,7 @@ export class FlexVars<Ctx extends Record<string, any> = Record<string, any>> {
                 priority: 'normal',
                 args:null,
                 next: (value:any) => value
-            },typeof(filter)=='function' ? {filter} : filter) as FlexFilter<any,Ctx>
+            },typeof(filter)=='function' ? {filter} : filter) as FlexFilter
             this.options.filters[name] = normalizedFilter
 		});
 	}

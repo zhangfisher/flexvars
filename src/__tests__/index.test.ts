@@ -12,7 +12,8 @@ const AddFilter = {
     next(value,args,context){
         return parseInt(value)+args.step
     }
-} 
+} satisfies FlexFilter
+
 // 返回空值的过滤器
 const NullFilter =  {
     name:"null",
@@ -22,11 +23,9 @@ const NullFilter =  {
 }
 
 describe("基本的变量插值功能", () => {
-    let flexvars:FlexVars  
+    let flexvars:FlexVars
     beforeEach(() => {
-        flexvars = new FlexVars<{
-            count:1
-        }>()
+        flexvars = new FlexVars()
     })
 
     test("位置变量插值", () => {        
@@ -111,13 +110,9 @@ describe("基本的变量插值功能", () => {
 
 
 describe("过滤器", () => {
-    let flexvars:FlexVars<{
-        count:number
-    }>
+    let flexvars:FlexVars 
     beforeEach(() => {
-        flexvars = new FlexVars<{
-            count:number
-        }>()
+        flexvars = new FlexVars()
     })
     
     test("过滤器基础调用方式",()=>{
@@ -160,7 +155,7 @@ describe("过滤器", () => {
 
 
     test("过滤器链式调用",()=>{
-        const filter =flexvars.addFilter(AddFilter)
+        const filter = flexvars.addFilter(AddFilter)
         expect(flexvars.replace("{|add}",0)).toBe("1")        
         expect(flexvars.replace("{|add|add}",0)).toBe("2")        
         expect(flexvars.replace("{|add|add|add}",0)).toBe("3")        
@@ -170,7 +165,7 @@ describe("过滤器", () => {
 
     test("过滤器默认出错处理",()=>{
         class MyError extends Error{}
-        const filter =flexvars.addFilter(AddFilter)
+        const filter = flexvars.addFilter(AddFilter)
         flexvars.addFilter({
             name:"throw",
             next(value,args,context){
@@ -452,16 +447,22 @@ describe("过滤器", () => {
 
     })
     test("可配置过滤器示例", () => {      
-        flexvars.options.config.currency={
-            prefix:"RMB",
-            sign:"￥",
-            suffix:"元"  
-        }
+        let lang = 'cn'
         flexvars.addFilter({
             name:"currency",
             args:["prefix","suffix","sign"],    
             // 指定该过滤器的配置数据在config的路径
-            configKey:"currency",            
+            getConfig:()=>{
+                return  lang==='cn' ? {
+                    prefix:"RMB",
+                    sign:"￥",
+                    suffix:"元"  
+                } : {
+                    prefix:"USD",
+                    sign:"$",
+                    suffix:""  
+                }
+            },           
             next(value:any,args,context){
                 // 获取配置数据
                 const cfgs = context.getConfig() 
@@ -473,11 +474,9 @@ describe("过滤器", () => {
         expect(flexvars.replace("{ value | currency}",100)).toBe("RMB￥100元")
         // 传入参数值，优先级更高
         expect(flexvars.replace("{ value | currency('人民币')}",100)).toBe("人民币￥100元")
-        flexvars.options.config.currency={
-            prefix:"USD",
-            sign:"$",
-            suffix:""  
-        }
+
+        lang = 'en'
+         
         expect(flexvars.replace("{ value | currency}",100)).toBe("USD$100")
 
     })

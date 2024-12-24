@@ -39,7 +39,6 @@ import { isFunction } from "flex-tools/typecheck/isFunction"
 import { assignObject } from 'flex-tools/object/assignObject';
 import { type FlexVars  } from "./flexvars";
 import { replaceAll } from "flex-tools/string/replaceAll";
-import { get as getByPath } from "flex-tools/object/get";
 import { FlexFilterAbortError, FlexFilterIgnoreError,FlexFilterEmptyError, FlexFilterError } from "./errors";
 import { escapeRegexpStr } from "./utils"
 import { isNumber } from "flex-tools/typecheck/isNumber"
@@ -221,21 +220,16 @@ export function forEachInterpolatedVars(this:FlexVars, str:string, replacer: (na
          let oldLen:number = newStr.length     // 记一下长度
          // 解析过滤器器和参数 = [<formatterName>,[<formatterName>,[<arg>,<arg>,...]]]
          const filters = parseFilters(matched[3] || "");
-         if (isFunction(replacer)) {
-             try {
-                 const finalValue = replacer(varname,prefix, suffix, filters,matched[0]);
-                 if (opts.replaceAll) {
-                     newStr = replaceAll(newStr,matched[0], finalValue);
-                 } else {
-                     newStr = newStr.replace(matched[0], finalValue);
-                 }
-             } catch(e:any) {	
-                throw e			
-             }
-             // 由于执行替换可能导致字符串发生变化，必须调整匹配位置，否则可能导致错误或无限循环
-             regex.lastIndex+=newStr.length-oldLen
-         }
-         
+         if (isFunction(replacer)) {             
+            const finalValue = replacer(varname,prefix, suffix, filters,matched[0]);
+            if (opts.replaceAll) {
+                newStr = replaceAll(newStr,matched[0], finalValue);
+            } else {
+                newStr = newStr.replace(matched[0], finalValue);
+            }
+            // 由于执行替换可能导致字符串发生变化，必须调整匹配位置，否则可能导致错误或无限循环
+            regex.lastIndex+=newStr.length-oldLen
+        }         
      }
      return newStr;
  }
@@ -343,10 +337,11 @@ function executeErrorHandler(this:FlexVars,error:Error,value:any,args:Record<str
  * @param args      传入的参数
  * @param nex    过滤器处理函数
  */
-function wrapperFilter(this:FlexVars,filter:FlexFilter,args:any[], context:FlexVariableContext){
+function wrapperFilter(this:FlexVars, filter:FlexFilter, args:any[], context:FlexVariableContext){
     
     // 1. 处理参数
-    let finalArgs:Record<string,any> =Object.assign({},filter.default)    
+    let finalArgs:Record<string,any> = typeof(filter.default) === 'function' ? filter.default() : filter.default    
+
     if(args.length==1 && isPlainObject(args[0])){   // 采用字典传参数方式
         assignObject(finalArgs,args[0])
     }else{// 位置传参数方式
@@ -362,7 +357,6 @@ function wrapperFilter(this:FlexVars,filter:FlexFilter,args:any[], context:FlexV
         let result:any 
         // 同一个变量的过滤器器共享同一个上下文，除了getConfig不一样外
         let filterContext = Object.assign(context,{
-            getConfig:()=>filter.configKey ? getByPath(this.options.config,filter.configKey) : this.options.config,
             args
         }) as FlexFilterContext
         try{
