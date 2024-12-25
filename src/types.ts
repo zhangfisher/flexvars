@@ -30,7 +30,7 @@ export type FilterEmptyHandler = (this:FlexVars,value:any,args:Record<string,any
 export type FilexFilterErrorBehavior = 'throw' | 'ignore' | 'break' 
 
 export interface FlexFilter<Args extends Record<string,any> = Record<string,any>>{
-    name?      : string
+    name       : string
     // 过滤器执行优先级
     // normal：普通过滤器，按照声明顺序执行
     // before： 无论该过滤器放在哪里，都会在普通过滤器之前执行
@@ -47,3 +47,4 @@ export interface FlexFilter<Args extends Record<string,any> = Record<string,any>
     // 当过滤器执行返回空值时的处理函数,空值是指null,undefined 
     onEmpty?   : FilterEmptyHandler
 }
+

@@ -350,7 +350,7 @@ function wrapperFilter(this:FlexVars, filter:FlexFilter, args:any[], context:Fle
             filter.args.forEach((argName:string,index:number)=>{
                 if(args[index]!==undefined) finalArgs[argName] = args[index]
             })
-        }
+        } 
     }
     // 
     return (value:any)=>{
