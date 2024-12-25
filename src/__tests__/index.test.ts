@@ -201,7 +201,7 @@ describe("过滤器", () => {
 
     test("过滤器默认出错处理时返回值",()=>{
         class MyError extends Error{}
-        const filter =flexvars.addFilter(AddFilter)
+        const filter = flexvars.addFilter(AddFilter)
         flexvars.addFilter({
             name:"throw",
             next(value,args,context){
@@ -461,7 +461,7 @@ describe("过滤器", () => {
                     suffix:""  
                 }
             },                       
-            next(value:any,args,context){ 
+            next(value:any,args){ 
                 return `${args.prefix}${args.sign}${value}${args.suffix}`
             }
         })
