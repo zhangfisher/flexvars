@@ -1,5 +1,11 @@
 # flexvars
 
+## 1.0.3
+
+### Patch Changes
+
+- 504e2a4: fix types error
+
 ## 1.0.2
 
 ### Patch Changes
