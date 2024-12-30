@@ -36,7 +36,7 @@ const flexvars = new FlexVars({
 完整的过滤器类型定义如下：
 
 ```ts
-export interface FlexFilter<Args extends Record<string,any> = Record<string,any>>{
+export interface FlexFilter<Args extends Record<string,any> = Record<string,any>,Context=FlexVars>{
     name?      : string
     // 过滤器执行优先级
     // normal：普通过滤器，按照声明顺序执行
@@ -46,9 +46,9 @@ export interface FlexFilter<Args extends Record<string,any> = Record<string,any>
     // 默认参数值
     default?   : Args | (()=>Args)     
     // 可选的，声明参数顺序，如果是变参的，则需要传入null
-    args?: (keyof Args)[] | null 
+    args?      : (keyof Args)[] | null 
     // 过滤处理函数，用来实现过滤器的具体逻辑
-    next       : (value:any,args:Args,context:FlexFilterContext)=>string | null | undefined  
+    next       : (this:Context,value:string,args:Args,context:FlexFilterContext)=>string | null | undefined  
     // 当执行过滤器时出错时的处理函数, BREAK:中止后续过滤器执行, THROW:抛出异常, IGNORE:忽略继续执行后续过滤器
     onError?   : FilterErrorHandler
     // 当过滤器执行返回空值时的处理函数,空值是指null,undefined 
@@ -91,9 +91,31 @@ export interface FlexVariableContext {
  
 ## 过滤器上下文
 
-当执行变量过滤器时，会生成一个对应的过滤器上下文对象。
+可以为过滤器函数的`next`指定`this`参数。
 
-过滤器上下文对象继承自变量上下文对象，同时还包含了一些额外的属性。
+```ts
+ const fvars = new FlexVars({
+    filterContext:{
+        a:1
+    }
+})
+fvars.addFilter({
+    name:"add",
+    next:function(this,value){
+        // this指向filterContext
+        return String(parseInt(value)+this.a)
+    }
+})
+
+expect(fvars.replace("{ | add }",1)).toBe("2")
+```
+
+- 如果没有指定`this`参数，则`this`指向`FlexVars`实例对象。
+
+
+## 变量上下文
+
+当执行变量过滤器时，会生成一个对应的插件变量上下文对象。 
 
 ```ts
 interface FlexFilterContext {
@@ -109,5 +131,5 @@ interface FlexFilterContext {
 } 
 ```
 
-**过滤器上下文对象**作为`next`函数的最后一个参数传入，开发过滤器时可以实现一些复杂的功能。
+**插件变量上下文**作为`next`函数的最后一个参数传入，开发过滤器时可以实现一些复杂的功能。
 

@@ -44,7 +44,7 @@ import { escapeRegexpStr } from "./utils"
 import { isNumber } from "flex-tools/typecheck/isNumber"
 import { safeParseJson } from "flex-tools/object/safeParseJson"
 import { addTagHelperFlags, removeTagHelperFlags } from "./tagHelper"
-import { FilterBehaviors,  FlexFilter, FlexFilterContext } from "./types";
+import { FilterBehaviors,  FlexFilter, FlexFilterVariableContext } from "./types";
 
 
 /**
@@ -248,7 +248,7 @@ export function forEachInterpolatedVars(this:FlexVars, str:string, replacer: (na
   * @param {{value,name,template,match}}   
   * 
   */ 
-export function executeFilters(this:FlexVars, filterDefines:FilterInputChain, context:FlexFilterContext) {
+export function executeFilters(this:FlexVars, filterDefines:FilterInputChain, context:FlexFilterVariableContext) {
     let value = context.value
     if (filterDefines.length > 0){
         // 1. 返回过滤器函数数组处理器
@@ -282,7 +282,7 @@ export function executeFilters(this:FlexVars, filterDefines:FilterInputChain, co
  * 
  * @remarks 
  */
- function checkEmptyValue(this:FlexVars,value:any,args:Record<string,any>,filter:FlexFilter,context:FlexFilterContext){
+ function checkEmptyValue(this:FlexVars,value:any,args:Record<string,any>,filter:FlexFilter,context:FlexFilterVariableContext){
     if(!this.options.isEmpty(value)) return value
     const emptyHandler = context.onEmpty || filter.onEmpty || this.options.onEmpty
     if(typeof(emptyHandler)!="function") return value
@@ -311,8 +311,8 @@ export function executeFilters(this:FlexVars, filterDefines:FilterInputChain, co
   * @param args 
   * @param context 
   */
-function executeErrorHandler(this:FlexVars,error:Error,value:any,args:Record<string,any>,filter:FlexFilter,context:FlexFilterContext){
-    const errorHandler =context.onError || filter.onError || this.options.onError
+function executeErrorHandler(this:any,error:Error,value:any,args:Record<string,any>,filter:FlexFilter,context:FlexFilterVariableContext){
+    const errorHandler = context.onError || filter.onError || this.options.onError
     if(typeof(errorHandler)!="function") return value
     const r =  errorHandler.call(this,error,value,args,context)             
     if(r instanceof Error){
@@ -337,7 +337,7 @@ function executeErrorHandler(this:FlexVars,error:Error,value:any,args:Record<str
  * @param args      传入的参数
  * @param nex    过滤器处理函数
  */
-function wrapperFilter(this:FlexVars, filter:FlexFilter, args:any[], context:FlexFilterContext){
+function wrapperFilter(this:FlexVars, filter:FlexFilter, args:any[], context:FlexFilterVariableContext){
     
     // 1. 处理参数
     const finalArgs:Record<string,any> = Object.assign({},typeof(filter.default) === 'function' ? filter.default() : filter.default )
@@ -352,13 +352,15 @@ function wrapperFilter(this:FlexVars, filter:FlexFilter, args:any[], context:Fle
             })
         } 
     }
+
     // 
     return (value:any)=>{
         let result:any  
         try{
             context.args = args
+            const filterCtx= (typeof(this.options.filterContext) == 'function' ? this.options.filterContext.call(this,value,finalArgs,context) : this.options.filterContext ) || this
             // 执行过滤器
-            result = filter.next.call(this,value,finalArgs,context)
+            result = filter.next.call(filterCtx,value,finalArgs,context)
             // 执行空值处理函数
             result = checkEmptyValue.call(this,result,finalArgs,filter,context) 
         }catch(e:any){
@@ -370,7 +372,7 @@ function wrapperFilter(this:FlexVars, filter:FlexFilter, args:any[], context:Fle
             }
             return executeErrorHandler.call(this,e,value,finalArgs,filter,context)
         }
-        return result
+        return String(result)
     }
 }
 
@@ -428,7 +430,7 @@ function getSortedFilters(this:FlexVars,filterDefines:FilterInputChain) : ([Flex
   * @returns {Array}   [(v)=>{...},(v)=>{...},(v)=>{...}]
   *
   */
- function getFilterHandlers(this:FlexVars,filterDefines:FilterInputChain,context:FlexFilterContext) {
+ function getFilterHandlers(this:FlexVars,filterDefines:FilterInputChain,context:FlexFilterVariableContext) {
     
     const filters:([FlexFilter,any[]])[] = getSortedFilters.call(this,filterDefines)
     const filderHandlers:any[]=[]  

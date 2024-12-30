@@ -1,6 +1,6 @@
 
 import { FlexFilterAbortError, FlexFilterEmptyError, FlexFilterError, FlexFilterIgnoreError } from "./errors";
-import { FlexFilter,FlexFilterContext } from './types';
+import { FlexFilter,FlexFilterVariableContext } from './types';
 /**
  * 默认的处理过滤器
  * 
@@ -31,7 +31,7 @@ export const defaultErrorFilter = {
     next(value,args,context){
         const operate = args.operate.toLowerCase()
         const inputValue = args.value
-        context.onError = (error:Error,value:any,_1:Record<string,any>,_2:FlexFilterContext)=>{
+        context.onError = (error:Error,value:any,_1:Record<string,any>,_2:FlexFilterVariableContext)=>{
             if(!(error instanceof Error))  throw error
             if(error instanceof FlexFilterError) throw error
             if(operate=='throw'){
@@ -50,7 +50,7 @@ export const defaultErrorFilter = {
         }       
         return value 
     }
-} as FlexFilter
+} as FlexFilter<Record<string,any>,any>
 
 
 
@@ -81,7 +81,7 @@ export const defaultEmptyFilter = {
     next(value,args,context){
         const operate = args.operate.toLowerCase()
         const inputValue = args.value
-        context.onEmpty = (value:any,args:Record<string,any>,context:FlexFilterContext)=>{
+        context.onEmpty = ()=>{
             if(operate=='throw'){
                 throw new FlexFilterEmptyError()
             }else if(operate=='abort'){
@@ -94,4 +94,4 @@ export const defaultEmptyFilter = {
         }
         return value 
     }
-} as FlexFilter
+} as FlexFilter<Record<string,any>,any>
