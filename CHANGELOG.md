@@ -1,5 +1,11 @@
 # flexvars
 
+## 1.0.5
+
+### Patch Changes
+
+- 2924824: feat: 调整 next 的 context 参数传递机制
+
 ## 1.0.4
 
 ### Patch Changes
