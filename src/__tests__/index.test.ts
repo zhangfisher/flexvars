@@ -455,13 +455,13 @@ describe("FlexVars",()=>{
                 // 指定该过滤器的配置数据在config的路径
                 default:()=>{
                     return  lang==='cn' ? {
-                        prefix:"RMB",
-                        sign:"￥",
-                        suffix:"元"  
+                        prefix: "RMB",
+                        sign  : "￥",
+                        suffix: "元"  
                     } : {
-                        prefix:"USD",
-                        sign:"$",
-                        suffix:""  
+                        prefix: "USD",
+                        sign  : "$",
+                        suffix: ""  
                     }
                 },                       
                 next(value:any,args){ 
@@ -477,11 +477,13 @@ describe("FlexVars",()=>{
             expect(flexvars.replace("{ value | currency}",100)).toBe("USD$100")
 
         })
+
         test("调用原型方法进行过滤", () => {      
             expect(flexvars.replace("{ | toUpperCase }","flexvars")).toBe("FLEXVARS")
             expect(flexvars.replace("{ | toLowerCase }","flexvars")).toBe("flexvars")
             expect(flexvars.replace("{ | slice(4) | toUpperCase  }","flexvars")).toBe("VARS")
         })
+
         test("为filter指定上下文",()=>{
             const fvars = new FlexVars({
                 filterContext:{
@@ -490,12 +492,12 @@ describe("FlexVars",()=>{
             })
             fvars.addFilter({
                 name:"add",
-                next:function(this,value){
-                    return String(parseInt(value)+this.a)
+                next:(value,_,ctx)=>{
+                    return String(parseInt(value) + ctx.a)
                 }
             })
-
             expect(fvars.replace("{ | add }",1)).toBe("2")
         })
+        
     })
 })

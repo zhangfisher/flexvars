@@ -351,16 +351,14 @@ function wrapperFilter(this:FlexVars, filter:FlexFilter, args:any[], context:Fle
                 if(args[index]!==undefined) finalArgs[argName] = args[index]
             })
         } 
-    }
-
+    } 
     // 
     return (value:any)=>{
         let result:any  
         try{
             context.args = args
-            const filterCtx= (typeof(this.options.filterContext) == 'function' ? this.options.filterContext.call(this,value,finalArgs,context) : this.options.filterContext ) || this
             // 执行过滤器
-            result = filter.next.call(filterCtx,value,finalArgs,context)
+            result = filter.next.call(this,value,finalArgs,context)
             // 执行空值处理函数
             result = checkEmptyValue.call(this,result,finalArgs,filter,context) 
         }catch(e:any){

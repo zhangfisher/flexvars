@@ -72,64 +72,28 @@ export interface FlexFilter<Args extends Record<string,any> = Record<string,any>
 - 参数的默认值通过`default`参数指定
 - 在`next`函数中，可以通过`args`参数获取传入的参数值,该参数值的类型为`Record<string,any>`。
 
-## 变量上下文
+
+ 
+## 过滤器上下文
+
+过滤器`next`函数的`this`参数指向`FlexVars`实例对象。
+ 
+ 
+ ## 变量上下文
 
 处理插值变量时会生成一个对应的上下文对象。
 
 ```ts
-export interface FlexVariableContext {
-    name:string,                        // 插企过滤器器名称
-    value:any                           // 当前变量的输入值，即通过replace(template,..args)传入的值
-    template:string,                    // 当前模板字符串，即整个字符串
-    match:string,                       // 当前匹配到的变量原始字符串  
-    prefix:string,                      // 当前变量的前缀
-    suffix:string,                      // 当前变量的后缀    
-    onError?:(this:FlexVars,error:Error,value:any,args:Record<string,any>,context:FlexFilterContext) => FilterBehaviorType | Error | string;     
-    onEmpty?:(this:FlexVars,value:any,args:Record<string,any>,context:FlexFilterContext) => FilterBehaviorType  | Error | string ;
-}
-```
- 
-## 过滤器上下文
-
-可以为过滤器函数的`next`指定`this`参数。
-
-```ts
- const fvars = new FlexVars({
-    filterContext:{
-        a:1
-    }
-})
-fvars.addFilter({
-    name:"add",
-    next:function(this,value){
-        // this指向filterContext
-        return String(parseInt(value)+this.a)
-    }
-})
-
-expect(fvars.replace("{ | add }",1)).toBe("2")
-```
-
-- 如果没有指定`this`参数，则`this`指向`FlexVars`实例对象。
-
-
-## 变量上下文
-
-当执行变量过滤器时，会生成一个对应的插件变量上下文对象。 
-
-```ts
-interface FlexFilterContext {
+type FlexFilterVariableContext<Context extends Dict = Dict> = {
     name     : string,                           // 过滤器器名称
     value    : any                               // 当前变量的输入值
     template : string,                           // 当前模板字符串，即整个字符串
     match    : string,                           // 当前匹配到的变量原始字符串  
     prefix   : string,                           // 当前变量的前缀
     suffix   : string,                           // 当前变量的后缀    
-    onError? : (this:FlexVars,error:Error,value:any,args:Record<string,any>,context:FlexFilterContext)=>FilterBehaviorType | Error | string;     
-    onEmpty? : (this:FlexVars,value:any,args:Record<string,any>,context:FlexFilterContext)=>FilterBehaviorType  | Error | string ;
-    args     : any[]                             // 当前过滤器的参数值
-} 
+    onError?: (this: FlexVars, error: Error, value: any, args: Dict, context: FlexFilterVariableContext<Context>) => FilterBehaviorType | Error | string;
+    onEmpty?: (this: FlexVars, value: any, args: Dict, context: FlexFilterVariableContext<Context>) => FilterBehaviorType | Error | string;
+    args     : any[]
+} &  Context
 ```
-
-**插件变量上下文**作为`next`函数的最后一个参数传入，开发过滤器时可以实现一些复杂的功能。
 
