@@ -1,5 +1,11 @@
 # flexvars
 
+## 1.0.4
+
+### Patch Changes
+
+- 6986cdc: feat: 为过滤器的 next 函数指定 filterContext
+
 ## 1.0.3
 
 ### Patch Changes
