@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       flex-tools:
-        specifier: ^1.4.14
-        version: 1.4.14
+        specifier: ^1.4.27
+        version: 1.4.27
     devDependencies:
       '@changesets/cli':
         specifier: ^2.27.10
@@ -1126,8 +1126,8 @@ packages:
     resolution: {integrity: sha512-PpOwAdQ/YlXQ2vj8a3h8IipDuYRi3wceVQQGYWxNINccq40Anw7BlsEXCMbt1Zt+OLA6Fq9suIpIWD0OsnISlw==}
     engines: {node: '>=8'}
 
-  flex-tools@1.4.14:
-    resolution: {integrity: sha512-yAf+AmFGwrTP35LFg5Mz6aAe+K5W00Z3dHG0ATwBzgdqf1nodArOATVrw46f5RBDe08B2a98M/4ru7tl+VIz9w==}
+  flex-tools@1.4.27:
+    resolution: {integrity: sha512-XJIZZRK3iSGdIrULrt8erR4N7acpLXEB3EoKpFVmULLwzcD0nJ4K4C8uNQ5R+mBNn8/6KREFY6pLlB0Gs0pj5g==}
 
   focus-trap@7.6.2:
     resolution: {integrity: sha512-9FhUxK1hVju2+AiQIDJ5Dd//9R2n2RAfJ0qfhF4IHGHgcoEUTMpbTeG/zbEuwaiYXfuAH6XE0/aCyxDdRM+W5w==}
@@ -1666,6 +1666,11 @@ packages:
 
   semver@7.5.4:
     resolution: {integrity: sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==}
+    engines: {node: '>=10'}
+    hasBin: true
+
+  semver@7.7.1:
+    resolution: {integrity: sha512-hlq8tAfn0m/61p4BVRcPzIGr6LKiMwo4VM6dGi6pt4qcRkmNzTcWq6eCEjEh+qXjkMDvPlOFFSGwQjoEa6gyMA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -3179,10 +3184,11 @@ snapshots:
       locate-path: 5.0.0
       path-exists: 4.0.0
 
-  flex-tools@1.4.14:
+  flex-tools@1.4.27:
     dependencies:
       art-template: 4.13.2
       glob: 10.4.5
+      semver: 7.7.1
 
   focus-trap@7.6.2:
     dependencies:
@@ -3415,7 +3421,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.5.4
+      semver: 7.7.1
 
   mark.js@8.11.1: {}
 
@@ -3715,6 +3721,8 @@ snapshots:
   semver@7.5.4:
     dependencies:
       lru-cache: 6.0.0
+
+  semver@7.7.1: {}
 
   shebang-command@2.0.0:
     dependencies:

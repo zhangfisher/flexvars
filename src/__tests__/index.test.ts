@@ -27,6 +27,11 @@ describe("FlexVars",()=>{
         beforeEach(() => {
             flexvars = new FlexVars()
         })
+        test("无变量时保留原始值", () => {        
+            expect(flexvars.replace("I am {}")).toBe("I am {}")
+            expect(flexvars.replace("{}{}{}")).toBe("{}{}{}")
+            expect(flexvars.replace("{x}{y}{z}")).toBe("{x}{y}{z}")
+        })
 
         test("位置变量插值", () => {        
             expect(flexvars.replace("I am {}","tom")).toBe("I am tom")

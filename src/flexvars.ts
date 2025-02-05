@@ -146,6 +146,7 @@ export class FlexVars<FilterContext extends Dict = Dict>{
 	 * flexvars.replace("I am { value | upper }",{value:"hello"}) --> "I am HELLO" 
 	 */
 	replace(template: string, ...args: any[]) {
+        if(args.length===0) return template
         if(args.length === 1 && typeof(args[0])=='function') args[0] = args[0].call(this)
 		// ****************************变量插值****************************
 		if (args.length === 1 && isPlainObject(args[0])) {

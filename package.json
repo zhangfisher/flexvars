@@ -1,10 +1,15 @@
 {
   "name": "flexvars",
   "version": "1.0.5",
-  "description": "",
+  "description": "Powerful string interpolation tool library",
+  "homepage": "https://zhangfisher.github.io/flexvars/",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "types": "dist/index.d.ts",  
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitee.com/zhangfisher/flexvars.git"
+  },
   "scripts": {
     "test": "vitest --",
     "test:coverage": "vitest --coverage",
@@ -29,6 +34,6 @@
     "vitest": "^0.34.4"
   },
   "dependencies": {
-    "flex-tools": "^1.4.14"
+    "flex-tools": "^1.4.27"
   }
 }
