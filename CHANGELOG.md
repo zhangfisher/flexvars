@@ -1,5 +1,14 @@
 # flexvars
 
+## 1.0.6
+
+### Patch Changes
+
+- 74a7492: feat: 当没有提供插值变量时返回保留原始字符串，如：`flexvars.replace("I am {}") => "I am {}"`
+  ```
+
+  ```
+
 ## 1.0.5
 
 ### Patch Changes
