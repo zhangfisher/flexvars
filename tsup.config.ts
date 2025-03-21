@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup'
+//@ts-ignore
 import copy from "esbuild-copy-files-plugin";
 
 
@@ -13,6 +14,9 @@ export default defineConfig({
     clean: true,
     treeshake:true,  
     minify: true,
+    noExternal:[
+        "flex-tools"
+    ],
     esbuildPlugins:[
         // @ts-ignore
         copy({

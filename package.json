@@ -34,6 +34,6 @@
     "vitest": "^0.34.4"
   },
   "dependencies": {
-    "flex-tools": "^1.4.27"
+    "flex-tools": "^1.4.41"
   }
 }
