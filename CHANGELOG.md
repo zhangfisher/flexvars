@@ -1,5 +1,11 @@
 # flexvars
 
+## 1.0.8
+
+### Patch Changes
+
+- 77df31b: update dependencies
+
 ## 1.0.7
 
 ### Patch Changes
