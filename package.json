@@ -1,6 +1,6 @@
 {
   "name": "flexvars",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Powerful string interpolation tool library",
   "homepage": "https://zhangfisher.github.io/flexvars/",
   "main": "dist/index.js",
