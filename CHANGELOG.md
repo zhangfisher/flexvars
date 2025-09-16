@@ -1,5 +1,11 @@
 # flexvars
 
+## 1.0.9
+
+### Patch Changes
+
+- 010d61f: fix: 修复多个命名插值变量时存在错误匹配的问题
+
 ## 1.0.8
 
 ### Patch Changes
